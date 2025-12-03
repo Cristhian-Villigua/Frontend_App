@@ -1,0 +1,62 @@
+import { useState } from "react";
+import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { Button, Text, TextInput } from "react-native-paper";
+import { FontAwesome6 } from "@expo/vector-icons";
+import { styles } from "./styles";
+
+export default function LoginScreen(){
+    let login = "Iniciar Sesión"
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [success, setSuccess] = useState("")
+    const [error, setError] = useState("")
+    const [loading, setLoading] = useState(false)
+
+    return(
+    <KeyboardAvoidingView
+        style={{ flex: 1}}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <ScrollView 
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled">  
+            <View style={styles.container}>
+                <Text style={styles.title}>{login}</Text>
+                <TextInput
+                    label="Correo"
+                    mode="outlined"
+                    value={email}
+                    onChangeText={setEmail}
+                    style={styles.input}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    left={<TextInput.Icon icon={() => <FontAwesome6 name="envelope" size={20} color="#ff0000" solid/>}/>}
+                    // right={<TextInput.Icon icon={() => <FontAwesome6 name="circle-xmark" size={20} color="#ff0000" solid/>}/>}
+                    right={<TextInput.Icon icon={() => <FontAwesome6 name="circle-check" size={20} color="#00ff00" solid/>}/>}
+                ></TextInput>
+                <TextInput
+                    label="Contraseña"
+                    mode="outlined"
+                    value={password}
+                    onChangeText={setPassword}
+                    style={styles.input}
+                    secureTextEntry
+                    left={<TextInput.Icon icon={() => <FontAwesome6 name="lock" size={20} color="#ff0000" solid/>}/>}
+                    // right={<TextInput.Icon icon={() => <FontAwesome6 name="circle-xmark" size={20} color="#ff0000" solid/>}/>}
+                    right={<TextInput.Icon icon={() => <FontAwesome6 name="circle-check" size={20} color="#00ff00" solid/>}/>}
+                ></TextInput>
+                <Button
+                    mode = "contained"
+                    loading = {loading}
+                    style = {styles.button}
+                >{login}</Button>
+                <Text style={styles.link}>
+                    ¿No tienes cuenta?{" "}<Text style={{ color: "#ff0000"}}>Registrarse</Text>
+                </Text>
+                <Text style={styles.link}>
+                    Ingresa como invitado{" "}<Text style={{ color: "#ff0000"}}>Invitado</Text>
+                </Text>
+            </View>
+        </ScrollView> 
+    </KeyboardAvoidingView>
+    )
+}
