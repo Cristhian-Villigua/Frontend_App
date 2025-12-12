@@ -8,7 +8,7 @@ export default function RegisterScreen(){
     let register = "Registrarse"
     const [name, setName] = useState("")
     const [lastName, setLastName] = useState("")
-    const [birthday, setBirtday] = useState("")
+    const [birthdate, setBirthdate] = useState("")
     const [phone, setPhone] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
@@ -48,8 +48,8 @@ export default function RegisterScreen(){
                 <TextInput
                     label="Fecha de nacimiento"
                     mode="outlined"
-                    value={birthday}
-                    onChangeText={setBirtday}
+                    value={birthdate}
+                    onChangeText={setBirthdate}
                     style={styles.input}
                     keyboardType="numeric"
                     maxLength={10}
