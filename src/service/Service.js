@@ -2,7 +2,7 @@ import axios from 'axios';
 import { BASE_URL } from 'react-native-dotenv';
 
 const api = axios.create({
-  baseURL: `${BASE_URL}/api`,
+  baseURL: `http//192.168.100.5:8000/api`,
 });
 
 export const fetchData = async () => {

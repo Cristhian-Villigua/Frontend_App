@@ -1,18 +1,85 @@
-import { View } from "react-native";
-import { Button, Text } from "react-native-paper";
+import React from "react";
+import { View, StyleSheet, ScrollView } from "react-native";
+import { Card, Text, Avatar, Divider, List, ProgressBar, Switch, Button } from "react-native-paper";
+import { useAppContext } from "../../context/AppContext";
 
 export default function ProfileScreen({ navigation }) {
-    const goToLogin = () => navigation.replace("Login");
-    return(
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-            <Text>Hola a ProfileScreen</Text>
-            <Button
-                mode="contained"
-                onPress={goToLogin}
-                style={{ marginTop: 20 }}
-            >
-                Cerrar sesión
-            </Button>
+  const { user, isDarkTheme, toggleTheme, logout } = useAppContext();
+
+  const handleLogout = () => {
+    logout();
+    // Reiniciar navegación y mandar al login
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      
+      
+      <Card style={styles.cardPerfil}>
+        <View style={styles.avatarContainer}>
+           <Avatar.Icon size={80} icon="account" style={{backgroundColor: '#d32f2f'}} />
         </View>
-    )
+        <Card.Title
+          title={user?.nombre || "Usuario"}
+          subtitle={user?.rol || "Cliente VIP"}
+          titleStyle={{ textAlign: 'center', fontWeight: 'bold', marginTop: 10 }}
+          subtitleStyle={{ textAlign: 'center', color: '#ffb300' }}
+        />
+        <Card.Content>
+          <Text style={{textAlign: 'center', marginBottom: 10}}>{user?.correo}</Text>
+          <Divider style={{ marginVertical: 10 }} />
+          <Text variant="labelMedium" style={{ fontWeight: 'bold' }}>Nivel Foodie 🍔</Text>
+          <ProgressBar progress={0.6} color="#d32f2f" style={{ height: 8, borderRadius: 5, marginTop: 5 }} />
+          <Text style={{ textAlign: 'right', fontSize: 10 }}>600 pts</Text>
+        </Card.Content>
+      </Card>
+
+      
+      <List.Section title="Mi Cuenta">
+        <List.Item 
+          title="Historial de Pedidos" 
+          left={() => <List.Icon icon="history" color="#d32f2f"/>}
+          onPress={() => navigation.navigate('History')} // Navega a HistoryScreen
+        />
+        <List.Item 
+          title="Métodos de Pago" 
+          left={() => <List.Icon icon="credit-card" color="#d32f2f"/>} 
+        />
+      </List.Section>
+
+      <Divider />
+
+      
+      <List.Section title="Configuración">
+        <List.Item
+          title="Modo Oscuro"
+          left={() => <List.Icon icon="theme-light-dark" />}
+          right={() => <Switch value={isDarkTheme} onValueChange={toggleTheme} color="#d32f2f" />}
+        />
+        
+        <View style={{ padding: 16 }}>
+          <Button 
+            mode="outlined" 
+            icon="logout" 
+            textColor="#d32f2f" 
+            style={{ borderColor: '#d32f2f' }}
+            onPress={handleLogout}
+          >
+            Cerrar Sesión
+          </Button>
+        </View>
+      </List.Section>
+
+    </ScrollView>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  cardPerfil: { margin: 16, padding: 10, elevation: 3, marginTop: 40 },
+  avatarContainer: { alignItems: 'center', marginTop: -50 }
+});
