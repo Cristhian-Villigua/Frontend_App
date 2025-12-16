@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { Button, Text, TextInput, Snackbar } from "react-native-paper";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { styles } from "./styles";
-import { webStyles } from "./webStyles";
-import {useForm} from '../../../components/useForm';
-import InputField from "../../../components/InputField";
+import { useForm } from '../../../components/useForm';
 import { validatePassword } from "../../../utils/validation";
+
+const MAX_EMAIL_LENGTH = 30;
+const PASSWORD_LENGTH = 20;
 
 export default function LoginScreen({ navigation }) {
     let login = "Iniciar Sesión";
@@ -18,13 +19,20 @@ export default function LoginScreen({ navigation }) {
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const{
+    const {
         email, emailError, handleEmailChange
     } = useForm();
 
     const goToMenu = () => navigation.replace("Dashboard");
     const goToRegister = () => navigation.replace("Register");
 
+    const localHandleEmailChange = (text) => {
+        let newEmail = text;
+        if (newEmail.length > MAX_EMAIL_LENGTH) {
+            newEmail = newEmail.substring(0, MAX_EMAIL_LENGTH);
+        }
+        handleEmailChange(newEmail);
+    };
 
     const handleLogin = () => {
         if (!email || !password) {
@@ -45,8 +53,9 @@ export default function LoginScreen({ navigation }) {
             setLoading(false);
             setSnackbarMessage("Inicio de sesión exitoso");
             setSnackbarVisible(true);
-            setEmail("");
-            setPassword("");
+            // La lógica para limpiar email y password se elimina ya que useForm maneja el email
+            // y el password se limpia directamente si se desea
+            // setPassword(""); 
             goToMenu();
         }, 1200);
     };
@@ -54,14 +63,31 @@ export default function LoginScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>{login}</Text>
-            <InputField 
+            
+            <TextInput
                 label="Correo"
+                mode="outlined"
+                activeOutlineColor={emailError ? "red" : email ? "green" : "black"}
                 value={email}
-                onChange={handleEmailChange}
-                error={emailError}
-                icon="envelope"
+                onChangeText={localHandleEmailChange}
                 style={styles.input}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                maxLength={MAX_EMAIL_LENGTH}
+                error={!!emailError}
+                left={<TextInput.Icon icon={() => <FontAwesome6 name="envelope" size={20} color={emailError ? "red" : email ? "green" : "black"} solid />} />}
+                right={
+                    email ? (
+                        emailError ? (
+                            <TextInput.Icon icon={() => <FontAwesome6 name="circle-xmark" size={20} color="red" solid />} onPress={() => handleEmailChange("")} />
+                        ) : (
+                            <TextInput.Icon icon={() => <FontAwesome6 name="circle-check" size={20} color="green" solid />} />
+                        )
+                    ) : null
+                }
             />
+            {emailError ? <Text style={{ color: "red", marginTop: -8 }}>{emailError}</Text> : null}
+
             <TextInput
                 label="Contraseña"
                 mode="outlined"
@@ -74,6 +100,7 @@ export default function LoginScreen({ navigation }) {
                 }}
                 secureTextEntry={!showPassword}
                 style={styles.input}
+                maxLength={PASSWORD_LENGTH}
                 error={!!passwordError}
                 left={<TextInput.Icon icon={() => <FontAwesome6 name="lock" size={20}
                     color={passwordError ? "red" : password ? "green" : "black"} solid />} />}
