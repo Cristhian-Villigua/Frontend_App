@@ -3,21 +3,24 @@ import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { Button, Text, TextInput, Snackbar } from "react-native-paper";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { styles } from "./styles";
-import { validateEmail, validatePassword } from "../../utils/validation";
+import { webStyles } from "./webStyles";
+import {useForm} from '../../../components/useForm';
+import InputField from "../../../components/InputField";
+import { validatePassword } from "../../../utils/validation";
 
 export default function LoginScreen({ navigation }) {
     let login = "Iniciar Sesión";
 
-    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-
-    const [emailError, setEmailError] = useState("");
     const [passwordError, setPasswordError] = useState("");
-
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [loading, setLoading] = useState(false);
+
+    const{
+        email, emailError, handleEmailChange
+    } = useForm();
 
     const goToMenu = () => navigation.replace("Dashboard");
     const goToRegister = () => navigation.replace("Register");
@@ -51,35 +54,14 @@ export default function LoginScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>{login}</Text>
-
-            <TextInput
+            <InputField 
                 label="Correo"
-                mode="outlined"
-                activeOutlineColor={emailError ? "red" : email ? "green" : "black"}
                 value={email}
-                onChangeText={(text) => {
-                    setEmail(text);
-                    const v = validateEmail(text);
-                    setEmailError(v.message);
-                }}
+                onChange={handleEmailChange}
+                error={emailError}
+                icon="envelope"
                 style={styles.input}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                error={!!emailError}
-                left={<TextInput.Icon icon={() => <FontAwesome6 name="envelope" size={20}
-                    color={emailError ? "red" : email ? "green" : "black"} solid />} />}
-                right={
-                    email ? (
-                        emailError ? (
-                            <TextInput.Icon icon={() => <FontAwesome6 name="circle-xmark" size={20} color="red" solid />} onPress={() => setEmail("")} />
-                        ) : (
-                            <TextInput.Icon icon={() => <FontAwesome6 name="circle-check" size={20} color="green" solid />} />
-                        )
-                    ) : null
-                }
             />
-            {emailError ? <Text style={{ color: "red", marginTop: -8 }}>{emailError}</Text> : null}
-
             <TextInput
                 label="Contraseña"
                 mode="outlined"
