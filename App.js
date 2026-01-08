@@ -13,9 +13,10 @@ import LoginScreenMobile from "./src/screens/mobile/auth/LoginScreen";
 const Stack = createNativeStackNavigator();
 
 function MainApp() {
-  const { paperTheme, isDarkTheme } = useAppContext();
+  const { paperTheme, isDarkTheme, user, loadingAuth } = useAppContext();
   const RegisterScreen = Platform.OS === 'web' ? RegisterScreenWeb : RegisterScreenMobile;
   const LoginScreen = Platform.OS === 'web' ? LoginScreenWeb : LoginScreenMobile
+  if (loadingAuth) return null;
   return (
     <PaperProvider theme={paperTheme}>
       <NavigationContainer theme={paperTheme}>
@@ -24,9 +25,14 @@ function MainApp() {
           backgroundColor="transparent"
           translucent={true} />
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
+          {!user ? (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </>
+          ) : (
           <Stack.Screen name="Dashboard" component={DashboardTabs} />
+          )}
         </Stack.Navigator>
       </NavigationContainer>
     </PaperProvider>

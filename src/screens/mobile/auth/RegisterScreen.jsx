@@ -1,18 +1,17 @@
 import { useState } from "react";
-import { View, Platform, Pressable, StyleSheet } from "react-native";
+import { View, Pressable } from "react-native";
 import { Button, Text, Snackbar, TextInput, RadioButton } from "react-native-paper";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { styles } from "./styles";
 import { useForm } from "../../../components/useForm";
-import InputField from "../../../components/InputField";
 import { 
     validateBirthday, 
     validatePassword, 
 } from "../../../utils/validation";
 import { webStyles } from "./webStyles";
-import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import apiClient from "../../../service/apiClient";
 
 const MAX_NAME_LENGTH = 20;
 const MAX_PHONE_LENGTH = 10;
@@ -62,21 +61,16 @@ export default function RegisterScreen({ navigation }) {
             nombres: name,
             apellidos: lastName,
             birthdate: birthday,
-            celular: phone,
             genero: gender,
+            celular: phone,
             email: email,
             password: password,
         };
 
         try {
-            const response = await axios.post('http://192.168.0.107:8000/api/auth/register', formData, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-
+            const response = await apiClient.post('/api/auth/register', formData);
             if (response.status === 201) {
-                const { token, client } = response.data; 
+                const { token, client } = response.data;
                 await AsyncStorage.setItem('auth_token', token);
                 setSnackbarMessage("Registro exitoso");
                 setSnackbarVisible(true);
@@ -84,12 +78,10 @@ export default function RegisterScreen({ navigation }) {
                 setGender("");
                 setPassword("");
                 navigation.replace("Login");
-
             } else {
                 setSnackbarMessage(response.data.error || 'Error desconocido');
                 setSnackbarVisible(true);
             }
-
         } catch (error) {
             console.error('Error al registrar: ', error);
             if (error.response) {
@@ -107,7 +99,6 @@ export default function RegisterScreen({ navigation }) {
     const onChangeBirthday = (event, selectedDate) => {
         setShowDatePicker(false);
         if (!selectedDate) return;
-        
         setBirthdayDate(selectedDate);
         const formattedDate = selectedDate.toLocaleDateString("es-EC");
         setBirthday(formattedDate);

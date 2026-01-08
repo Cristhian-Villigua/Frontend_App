@@ -27,9 +27,6 @@ export const validateLastname = (text) => {
 export const validateBirthday = (text) => {
     if (!text.trim()) return { valid: false, message: "La fecha de nacimiento es requerida" };
 
-    const regex = /^\d{2}\/\d{2}\/\d{4}$/;
-    if (!regex.test(text)) return { valid: false, message: "Formato inválido (DD/MM/AAAA)" };
-
     const [dia, mes, anio] = text.split("/").map(Number);
     const fecha = new Date(anio, mes - 1, dia);
     const hoy = new Date();

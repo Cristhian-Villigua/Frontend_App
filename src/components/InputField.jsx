@@ -11,8 +11,6 @@ const InputField = ({
   onChange,
   error,
   icon,
-  showPassword,
-  onTogglePassword,
 }) => (
   <>
     <TextInput

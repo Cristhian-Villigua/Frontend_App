@@ -5,12 +5,15 @@ import { FontAwesome6 } from "@expo/vector-icons";
 import { styles } from "./styles";
 import { useForm } from '../../../components/useForm';
 import { validatePassword } from "../../../utils/validation";
+import { useAppContext } from "../../../context/AppContext";
+import apiClient from "../../../service/apiClient";
 
 const MAX_EMAIL_LENGTH = 30;
 const PASSWORD_LENGTH = 20;
 
 export default function LoginScreen({ navigation }) {
-    let login = "Iniciar Sesión";
+    const Login = "Iniciar Sesión";
+    const { login } = useAppContext();
 
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +37,7 @@ export default function LoginScreen({ navigation }) {
         handleEmailChange(newEmail);
     };
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         if (!email || !password) {
             setSnackbarMessage("Todos los campos son obligatorios.");
             setSnackbarVisible(true);
@@ -47,22 +50,29 @@ export default function LoginScreen({ navigation }) {
             return;
         }
 
-        setLoading(true);
+        try {
+            setLoading(true);
+            const { data } = await apiClient.post("/api/auth/login", {
+                email,
+                password,
+            });
 
-        setTimeout(() => {
-            setLoading(false);
-            setSnackbarMessage("Inicio de sesión exitoso");
+            if (data.token) {
+                await login(data.user, data.token);
+            }
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || "Error desconocido";
+            setSnackbarMessage(errorMessage);
             setSnackbarVisible(true);
-            // La lógica para limpiar email y password se elimina ya que useForm maneja el email
-            // y el password se limpia directamente si se desea
-            // setPassword(""); 
-            goToMenu();
-        }, 1200);
+        } finally {
+            setLoading(false);
+        }
     };
+
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>{login}</Text>
+            <Text style={styles.title}>{Login}</Text>
             
             <TextInput
                 label="Correo"
@@ -122,7 +132,7 @@ export default function LoginScreen({ navigation }) {
                 style={styles.button}
                 onPress={handleLogin}
             >
-                {login}
+                {Login}
             </Button>
 
             <Text style={styles.link}>

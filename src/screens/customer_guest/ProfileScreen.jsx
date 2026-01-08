@@ -8,29 +8,26 @@ export default function ProfileScreen({ navigation }) {
 
   const handleLogout = () => {
     logout();
-    // Reiniciar navegación y mandar al login
-    navigation.reset({
+    /*navigation.reset({
       index: 0,
       routes: [{ name: 'Login' }],
-    });
+    });*/
   };
 
   return (
-    <ScrollView style={styles.container}>
-      
-      
+    <ScrollView style={[styles.container, { backgroundColor: isDarkTheme ? '#121212' : '#f5f5f5' }]}>
       <Card style={styles.cardPerfil}>
         <View style={styles.avatarContainer}>
            <Avatar.Icon size={80} icon="account" style={{backgroundColor: '#d32f2f'}} />
         </View>
         <Card.Title
-          title={user?.nombre || "Usuario"}
+          title={user?.name && user?.lastname ? `${user.name} ${user.lastname}` : "Usuario"}
           subtitle={user?.rol || "Cliente VIP"}
           titleStyle={{ textAlign: 'center', fontWeight: 'bold', marginTop: 10 }}
           subtitleStyle={{ textAlign: 'center', color: '#ffb300' }}
         />
         <Card.Content>
-          <Text style={{textAlign: 'center', marginBottom: 10}}>{user?.correo}</Text>
+          <Text style={{textAlign: 'center', marginBottom: 10}}>{user?.email}</Text>
           <Divider style={{ marginVertical: 10 }} />
           <Text variant="labelMedium" style={{ fontWeight: 'bold' }}>Nivel Foodie 🍔</Text>
           <ProgressBar progress={0.6} color="#d32f2f" style={{ height: 8, borderRadius: 5, marginTop: 5 }} />
