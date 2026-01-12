@@ -9,6 +9,8 @@ import RegisterScreenMobile from "./src/screens/mobile/auth/RegisterScreen";
 import RegisterScreenWeb from "./src/screens/web/auth/RegisterScreen";
 import LoginScreenWeb from "./src/screens/web/auth/LoginScreen";
 import LoginScreenMobile from "./src/screens/mobile/auth/LoginScreen";
+import CategoriaScreen from "./src/screens/customer_guest/CategoriaScreen";
+import DetalleScreen from "./src/screens/customer_guest/DetalleScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -31,7 +33,11 @@ function MainApp() {
             <Stack.Screen name="Register" component={RegisterScreen} />
           </>
           ) : (
-          <Stack.Screen name="Dashboard" component={DashboardTabs} />
+          <>
+            <Stack.Screen name="Dashboard" component={DashboardTabs} />
+            <Stack.Screen name="Categoria" component={CategoriaScreen} />
+            <Stack.Screen name="Detalle" component={DetalleScreen} />
+          </>
           )}
         </Stack.Navigator>
       </NavigationContainer>

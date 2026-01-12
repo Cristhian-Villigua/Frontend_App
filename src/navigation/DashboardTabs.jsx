@@ -13,8 +13,7 @@ export default function DashboardTabs() {
         <Tab.Navigator
             screenOptions={({ route }) => ({
                 headerShown: false,
-                tabBarActiveTintColor: "#144985",
-                tabBarInactiveTintColor: "#777",
+                tabBarInactiveTintColor: "#fff",
                 tabBarLabelStyle: {
                     fontSize: 12,
                     marginBottom: 4,
@@ -23,6 +22,7 @@ export default function DashboardTabs() {
                 tabBarStyle: {
                     height: 50 + insets.bottom,
                     paddingBottom: 6,
+                    backgroundColor: "#220C01",
                     elevation: 0
                 },
 
