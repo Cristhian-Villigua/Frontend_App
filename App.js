@@ -11,13 +11,14 @@ import LoginScreenWeb from "./src/screens/web/auth/LoginScreen";
 import LoginScreenMobile from "./src/screens/mobile/auth/LoginScreen";
 import CategoriaScreen from "./src/screens/customer_guest/CategoriaScreen";
 import DetalleScreen from "./src/screens/customer_guest/DetalleScreen";
+import CarritoScreen from "./src/screens/customer_guest/CartScreen";
 
 const Stack = createNativeStackNavigator();
 
 function MainApp() {
   const { paperTheme, isDarkTheme, user, loadingAuth } = useAppContext();
   const RegisterScreen = Platform.OS === 'web' ? RegisterScreenWeb : RegisterScreenMobile;
-  const LoginScreen = Platform.OS === 'web' ? LoginScreenWeb : LoginScreenMobile
+  const LoginScreen = Platform.OS === 'web' ? LoginScreenWeb : LoginScreenMobile;
   if (loadingAuth) return null;
   return (
     <PaperProvider theme={paperTheme}>
@@ -37,6 +38,7 @@ function MainApp() {
             <Stack.Screen name="Dashboard" component={DashboardTabs} />
             <Stack.Screen name="Categoria" component={CategoriaScreen} />
             <Stack.Screen name="Detalle" component={DetalleScreen} />
+            <Stack.Screen name="CarritoScreen" component={CarritoScreen} />
           </>
           )}
         </Stack.Navigator>

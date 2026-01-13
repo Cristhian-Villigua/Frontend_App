@@ -9,10 +9,6 @@ export default function ProfileScreen({ navigation }) {
 
   const handleLogout = () => {
     logout();
-    /*navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });*/
   };
 
   return (

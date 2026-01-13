@@ -6,6 +6,28 @@ import { stylesGlobal } from "./styles";
 export default function DetalleScreen({ route, navigation }) {
   const { plato } = route.params;
   const [cantidad, setCantidad] = useState(0);
+  const [carrito, setCarrito] = useState([]); // Estado para el carrito
+
+  const agregarAlCarrito = () => {
+    if (cantidad === 0) return;
+
+    const nuevoItem = {
+      id: plato.id,
+      nombre: plato.nombre,
+      precio: plato.precio,
+      cantidad: cantidad,
+      img: plato.img,
+    };
+
+     setCarrito((prevCarrito) => {
+    const nuevoCarrito = [...prevCarrito, nuevoItem];
+    alert("Producto añadido al carrito!");
+    
+    // Navegar después de actualizar el estado
+    navigation.navigate("CarritoScreen", { items: nuevoCarrito });
+    return nuevoCarrito; // Actualiza el carrito en el estado
+  });
+  };
 
   return (
     <View style={styles.container}>
@@ -52,7 +74,7 @@ export default function DetalleScreen({ route, navigation }) {
           </Text>
 
           {/* Botón Añadir al Carrito */}
-          <TouchableOpacity style={styles.btnCarrito} onPress={() => console.log("Añadido")}>
+          <TouchableOpacity style={styles.btnCarrito} onPress={agregarAlCarrito}>
             <Text style={styles.btnText}>Añadir al carrito</Text>
             <Text style={styles.btnPrice}>{plato.precio}</Text>
           </TouchableOpacity>

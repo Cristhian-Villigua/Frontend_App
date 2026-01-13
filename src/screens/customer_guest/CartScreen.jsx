@@ -3,18 +3,21 @@ import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from "react-nat
 import { Text, IconButton, Divider, Appbar } from "react-native-paper";
 import { stylesGlobal } from "./styles";
 
-export default function CarritoScreen({ navigation }) {
-  const [items, setItems] = useState([
-    {
-      id: 1,
-      nombre: "Guacamole",
-      precio: 8.0,
-      cantidad: 1,
-      img: "https://images.unsplash.com/photo-1541832676-9b763b0239ab?w=500",
-    },
-  ]);
+export default function CarritoScreen({  route, navigation }) {
+  const items = route.params?.items || [];
 
-  const subTotal = items.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
+  if (!items.length) {
+    return (
+      <View style={styles.container}>
+        <Text>No hay productos en el carrito</Text>
+      </View>
+    );
+  }
+  const subTotal = items.reduce((acc, item) => {
+    const precio = parseFloat(item.precio.replace('$', '')) || 0;
+    return acc + (precio * item.cantidad);
+  }, 0);
+
   const impuesto = subTotal * 0.02;
   const total = subTotal + impuesto;
 
@@ -28,37 +31,41 @@ export default function CarritoScreen({ navigation }) {
       </Appbar.Header>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {items.map((item) => (
-          <View key={item.id} style={styles.cartCard}>
-            <Image source={{ uri: item.img }} style={styles.productImage} />
+        {items.map((item) => {
+          const precio = parseFloat(item.precio.replace('$', '')) || 0; // Convertimos a número
 
-            <View style={styles.infoContainer}>
-              <Text style={styles.productName}>{item.nombre}</Text>
-              <Text style={styles.productPrice}>${item.precio.toFixed(1)}</Text>
+          return (
+            <View key={item.id} style={styles.cartCard}>
+              <Image source={{ uri: item.img }} style={styles.productImage} />
 
-              <View style={styles.stepper}>
-                <TouchableOpacity style={styles.stepperBtn}>
-                  <Text style={styles.stepperText}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.qtyText}>{item.cantidad}</Text>
-                <TouchableOpacity style={styles.stepperBtn}>
-                  <Text style={styles.stepperText}>+</Text>
-                </TouchableOpacity>
+              <View style={styles.infoContainer}>
+                <Text style={styles.productName}>{item.nombre}</Text>
+                <Text style={styles.productPrice}>${precio.toFixed(1)}</Text>
+
+                <View style={styles.stepper}>
+                  <TouchableOpacity style={styles.stepperBtn}>
+                    <Text style={styles.stepperText}>-</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.qtyText}>{item.cantidad}</Text>
+                  <TouchableOpacity style={styles.stepperBtn}>
+                    <Text style={styles.stepperText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.rightAction}>
+                <IconButton
+                  icon="close"
+                  size={20}
+                  containerColor="#2b1a14"
+                  iconColor="white"
+                  style={styles.closeBtn}
+                />
+                <Text style={styles.itemTotal}>${(precio * item.cantidad).toFixed(0)}</Text>
               </View>
             </View>
-
-            <View style={styles.rightAction}>
-              <IconButton
-                icon="close"
-                size={20}
-                containerColor="#2b1a14"
-                iconColor="white"
-                style={styles.closeBtn}
-              />
-              <Text style={styles.itemTotal}>${(item.precio * item.cantidad).toFixed(0)}</Text>
-            </View>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
 
       {/* Sección de Totales */}
