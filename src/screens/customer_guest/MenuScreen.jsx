@@ -12,30 +12,19 @@ export default function MenuScreen() {
   const [loading, setLoading] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
 
-  useEffect(() => {
-    fetchMenu();
-  }, []);
-
   const fetchMenu = async () => {
     try {
       setLoading(true);
       const { data } = await apiClient.get("/api/categories");
       setCategories(data);
 
-      // Extraer y limpiar items
       let allItems = [];
       data.forEach(cat => {
         if (cat.items && cat.items.length > 0) {
-          const cleanedItems = cat.items.map(item => {
-            let images = [];
-            try {
-              // Manejo de picUrl como string JSON o Array
-              images = typeof item.picUrl === 'string' ? JSON.parse(item.picUrl) : item.picUrl;
-            } catch (e) {
-              images = [item.picUrl];
-            }
-            return { ...item, picUrl: Array.isArray(images) ? images : [images] };
-          });
+          const cleanedItems = cat.items.map(item => ({
+            ...item,
+            picUrl: Array.isArray(item.picUrl) ? item.picUrl : []
+          }));
           allItems = [...allItems, ...cleanedItems];
         }
       });
@@ -48,6 +37,10 @@ export default function MenuScreen() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchMenu();
+  }, []);
 
   const renderHeader = () => (
     <View>
@@ -85,7 +78,7 @@ export default function MenuScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={stylesGlobal.container}>
       <Appbar.Header style={stylesGlobal.appbar}>
         <Appbar.Content title="Menú Principal" titleStyle={stylesGlobal.headerTitle} />
       </Appbar.Header>
@@ -125,7 +118,6 @@ export default function MenuScreen() {
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff4ea' },
   bannerContainer: {
     paddingVertical: 20,
     paddingHorizontal: 20,

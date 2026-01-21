@@ -1,81 +1,77 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from "react-native";
 import { Text, IconButton, Divider, Appbar } from "react-native-paper";
 import { stylesGlobal } from "./styles";
 
-export default function CarritoScreen({  route, navigation }) {
-  const items = route.params?.items || [];
+export default function CarritoScreen({ route }) {
 
-  if (!items.length) {
-    return (
-      <View style={styles.container}>
-        <Text>No hay productos en el carrito</Text>
-      </View>
+  const [carrito, setCarrito] = useState([]);
+
+  useEffect(() => {
+    if (route.params?.items) {
+      setCarrito(route.params.items);
+    }
+  }, [route.params?.items]);
+
+  const carritoOrdenado = useMemo(() => {
+    return [...carrito].sort((a, b) =>
+      a.nombre.localeCompare(b.nombre)
     );
-  }
-  const subTotal = items.reduce((acc, item) => {
-    const precio = parseFloat(item.precio.replace('$', '')) || 0;
-    return acc + (precio * item.cantidad);
+  }, [carrito]);
+  
+
+  const subTotal = carritoOrdenado.reduce((acc, item) => {
+    return acc + parseFloat(item.precio) * item.cantidad;
   }, 0);
 
   const impuesto = subTotal * 0.02;
   const total = subTotal + impuesto;
 
+  // 🔹 FUNCIÓN VACÍA PARA ENVIAR DATOS
+  const ordenarPedido = () => {
+    const payload = {
+      items: carritoOrdenado,
+      subTotal,
+      impuesto,
+      total
+    };
+
+    console.log("Pedido listo para enviar:", payload);
+    // apiClient.post("/api/orders", payload)
+  };
+
   return (
-    <View style={styles.container}>
-      {/* Header Rojo */}
+    <View style={[stylesGlobal.container, { flex: 1 }]}>
       <Appbar.Header style={stylesGlobal.appbar}>
-        <Appbar.BackAction color="white" onPress={() => { }} style={{ opacity: 0 }} disabled />
         <Appbar.Content title="Carrito" titleStyle={stylesGlobal.headerTitle} />
-        <Appbar.Action color="white" onPress={() => { }} style={{ opacity: 0 }} disabled />
       </Appbar.Header>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {items.map((item) => {
-          const precio = parseFloat(item.precio.replace('$', '')) || 0; // Convertimos a número
+        {carritoOrdenado.map(item => (
+          <View key={item.id} style={styles.cartCard}>
+            <Image source={{ uri: item.img }} style={styles.productImage} />
 
-          return (
-            <View key={item.id} style={styles.cartCard}>
-              <Image source={{ uri: item.img }} style={styles.productImage} />
-
-              <View style={styles.infoContainer}>
-                <Text style={styles.productName}>{item.nombre}</Text>
-                <Text style={styles.productPrice}>${precio.toFixed(1)}</Text>
-
-                <View style={styles.stepper}>
-                  <TouchableOpacity style={styles.stepperBtn}>
-                    <Text style={styles.stepperText}>-</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.qtyText}>{item.cantidad}</Text>
-                  <TouchableOpacity style={styles.stepperBtn}>
-                    <Text style={styles.stepperText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              <View style={styles.rightAction}>
-                <IconButton
-                  icon="close"
-                  size={20}
-                  containerColor="#2b1a14"
-                  iconColor="white"
-                  style={styles.closeBtn}
-                />
-                <Text style={styles.itemTotal}>${(precio * item.cantidad).toFixed(0)}</Text>
-              </View>
+            <View style={styles.infoContainer}>
+              <Text style={styles.productName}>{item.nombre}</Text>
+              <Text style={styles.productPrice}>${item.precio}</Text>
+              <Text>Cantidad: {item.cantidad}</Text>
             </View>
-          );
-        })}
+
+            <Text style={styles.itemTotal}>
+              ${(parseFloat(item.precio) * item.cantidad).toFixed(2)}
+            </Text>
+          </View>
+        ))}
       </ScrollView>
 
-      {/* Sección de Totales */}
       <View style={styles.footer}>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>SubTotal</Text>
-          <Text style={styles.totalValue}>${subTotal.toFixed(1)}</Text>
+          <Text style={styles.totalValue}>${subTotal.toFixed(2)}</Text>
         </View>
+
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Impuesto Total</Text>
+          <Text style={styles.totalLabel}>Impuesto</Text>
           <Text style={styles.totalValue}>${impuesto.toFixed(2)}</Text>
         </View>
 
@@ -86,7 +82,7 @@ export default function CarritoScreen({  route, navigation }) {
           <Text style={styles.finalTotalValue}>${total.toFixed(2)}</Text>
         </View>
 
-        <TouchableOpacity style={styles.orderBtn}>
+        <TouchableOpacity style={styles.orderBtn} onPress={ordenarPedido}>
           <Text style={styles.orderBtnText}>ORDENAR</Text>
         </TouchableOpacity>
       </View>
@@ -94,8 +90,8 @@ export default function CarritoScreen({  route, navigation }) {
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff4ea' },
   scrollContent: { padding: 20 },
 
   cartCard: {

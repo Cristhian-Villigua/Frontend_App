@@ -13,6 +13,7 @@ export default function DashboardTabs() {
         <Tab.Navigator
             screenOptions={({ route }) => ({
                 headerShown: false,
+                tabBarHideOnKeyboard: true,
                 tabBarInactiveTintColor: "#fff",
                 tabBarLabelStyle: {
                     fontSize: 12,

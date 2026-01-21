@@ -1,16 +1,36 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Image, ScrollView, TouchableOpacity } from "react-native";
-import { Text, Appbar, IconButton } from "react-native-paper";
+import React, { useState, useCallback } from "react";
+import { View, StyleSheet, Image, ScrollView, TouchableOpacity, RefreshControl } from "react-native";
+import { Text, Appbar, IconButton, Snackbar } from "react-native-paper";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import apiClient from "../../service/apiClient";
 import { stylesGlobal } from "./styles";
 
 export default function DetalleScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { plato } = route.params;
+  const { plato: initialPlato } = route.params;
 
+  const [plato, setPlato] = useState(initialPlato);
   const [cantidad, setCantidad] = useState(0);
   const [carrito, setCarrito] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [ultimoItem, setUltimoItem] = useState(null);
+
+  const refreshPlato = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      const response = await apiClient.get(`/api/items/${plato.id}`);
+      setPlato({
+        ...response.data,
+        picUrl: Array.isArray(response.data.picUrl) ? response.data.picUrl : []
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [plato.id]);
 
   const agregarAlCarrito = () => {
     if (cantidad === 0) return;
@@ -24,23 +44,42 @@ export default function DetalleScreen() {
     };
 
     setCarrito(prev => {
-      const nuevoCarrito = [...prev, nuevoItem];
-      alert("Producto añadido al carrito!");
-      navigation.navigate("CarritoScreen", { items: nuevoCarrito });
+      const existe = prev.find(item => item.id === nuevoItem.id);
+
+      let nuevoCarrito;
+      if (existe) {
+        nuevoCarrito = prev.map(item =>
+          item.id === nuevoItem.id
+            ? { ...item, cantidad: item.cantidad + cantidad }
+            : item
+        );
+      } else {
+        nuevoCarrito = [...prev, nuevoItem];
+      }
+
+      setUltimoItem(nuevoCarrito);
+      setSnackbarVisible(true);
+      setCantidad(0);
+
       return nuevoCarrito;
     });
   };
 
+
   return (
-    <View style={styles.container}>
+    <View style={stylesGlobal.container}>
       {/* Header */}
       <Appbar.Header style={stylesGlobal.appbar}>
         <Appbar.BackAction color="white" onPress={() => navigation.goBack()} />
         <Appbar.Content title="Detalle" titleStyle={stylesGlobal.headerTitle} />
-        <Appbar.Action icon="heart" color="white" onPress={() => {}} />
+        <Appbar.Action icon="heart" color="white" onPress={() => { }} />
       </Appbar.Header>
 
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refreshPlato} />
+        }
+      >
         {/* Imagen Principal */}
         <Image source={{ uri: plato.picUrl[0] }} style={styles.imageMain} />
 
@@ -87,12 +126,17 @@ export default function DetalleScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={4000}>Producto agregado al carrito
+      </Snackbar>
     </View>
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff4ea' },
   imageMain: { width: '100%', height: 300, resizeMode: 'cover' },
   infoContainer: {
     backgroundColor: '#fff4ea',
@@ -108,11 +152,11 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 20 },
   stepper: { flexDirection: 'row', alignItems: 'center' },
   qtyLabel: { fontSize: 18, fontWeight: 'bold', marginRight: 10 },
-  stepperControls: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    borderWidth: 1, 
-    borderColor: '#1a0a05', 
+  stepperControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#1a0a05',
     borderRadius: 20,
     paddingHorizontal: 10
   },
