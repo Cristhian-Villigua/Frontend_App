@@ -1,67 +1,74 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Image, ScrollView, TouchableOpacity } from "react-native";
-import { Text, IconButton, Appbar } from "react-native-paper";
+import { Text, Appbar, IconButton } from "react-native-paper";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import { stylesGlobal } from "./styles";
 
-export default function DetalleScreen({ route, navigation }) {
+export default function DetalleScreen() {
+  const route = useRoute();
+  const navigation = useNavigation();
   const { plato } = route.params;
+
   const [cantidad, setCantidad] = useState(0);
-  const [carrito, setCarrito] = useState([]); // Estado para el carrito
+  const [carrito, setCarrito] = useState([]);
 
   const agregarAlCarrito = () => {
     if (cantidad === 0) return;
 
     const nuevoItem = {
       id: plato.id,
-      nombre: plato.nombre,
-      precio: plato.precio,
-      cantidad: cantidad,
-      img: plato.img,
+      nombre: plato.title,
+      precio: plato.price,
+      cantidad,
+      img: plato.picUrl[0],
     };
 
-     setCarrito((prevCarrito) => {
-    const nuevoCarrito = [...prevCarrito, nuevoItem];
-    alert("Producto añadido al carrito!");
-    
-    // Navegar después de actualizar el estado
-    navigation.navigate("CarritoScreen", { items: nuevoCarrito });
-    return nuevoCarrito; // Actualiza el carrito en el estado
-  });
+    setCarrito(prev => {
+      const nuevoCarrito = [...prev, nuevoItem];
+      alert("Producto añadido al carrito!");
+      navigation.navigate("CarritoScreen", { items: nuevoCarrito });
+      return nuevoCarrito;
+    });
   };
 
   return (
     <View style={styles.container}>
-      {/* Header Rojo */}
+      {/* Header */}
       <Appbar.Header style={stylesGlobal.appbar}>
         <Appbar.BackAction color="white" onPress={() => navigation.goBack()} />
         <Appbar.Content title="Detalle" titleStyle={stylesGlobal.headerTitle} />
         <Appbar.Action icon="heart" color="white" onPress={() => {}} />
       </Appbar.Header>
 
-
-      <ScrollView bouncer={false}>
+      <ScrollView>
         {/* Imagen Principal */}
-        <Image source={{ uri: plato.img }} style={styles.imageMain} />
+        <Image source={{ uri: plato.picUrl[0] }} style={styles.imageMain} />
 
-        {/* Contenedor de Información con Bordes Redondeados */}
+        {/* Contenedor de Información */}
         <View style={styles.infoContainer}>
-          <Text style={styles.nombrePlato}>{plato.nombre}</Text>
+          <Text style={styles.nombrePlato}>{plato.title}</Text>
           <Text style={styles.categoriaTexto}>Plato Principal</Text>
 
           <View style={styles.row}>
+            {/* Stepper para cantidad */}
             <View style={styles.stepper}>
-              <Text style={styles.qtyLabel}>Qty.</Text>
+              <Text style={styles.qtyLabel}>Cantidad</Text>
               <View style={styles.stepperControls}>
-                <TouchableOpacity onPress={() => cantidad > 0 && setCantidad(cantidad - 1)}>
+                <TouchableOpacity
+                  onPress={() => setCantidad(prev => Math.max(prev - 1, 0))}
+                >
                   <Text style={styles.stepperBtn}>-</Text>
                 </TouchableOpacity>
                 <Text style={styles.qtyNumber}>{cantidad}</Text>
-                <TouchableOpacity onPress={() => setCantidad(cantidad + 1)}>
+                <TouchableOpacity
+                  onPress={() => setCantidad(prev => Math.min(prev + 1, 25))}
+                >
                   <Text style={styles.stepperBtn}>+</Text>
                 </TouchableOpacity>
               </View>
             </View>
-            
+
+            {/* Rating */}
             <View style={styles.ratingBox}>
               <Text style={styles.ratingText}>4.8</Text>
               <IconButton icon="star" size={20} iconColor="black" style={styles.starIcon} />
@@ -70,13 +77,13 @@ export default function DetalleScreen({ route, navigation }) {
 
           <Text style={styles.sectionTitle}>Descripción</Text>
           <Text style={styles.descripcionText}>
-            {plato.descripcion || "El Guacamole es una mezcla deliciosa de aguacate triturado con cebolla, cilantro, tomate, chile y limón, perfecto para acompañar totopos o carnes."}
+            {plato.description || "Sin descripción disponible."}
           </Text>
 
-          {/* Botón Añadir al Carrito */}
+          {/* Botón Añadir al carrito */}
           <TouchableOpacity style={styles.btnCarrito} onPress={agregarAlCarrito}>
             <Text style={styles.btnText}>Añadir al carrito</Text>
-            <Text style={styles.btnPrice}>{plato.precio}</Text>
+            <Text style={styles.btnPrice}>${plato.price}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

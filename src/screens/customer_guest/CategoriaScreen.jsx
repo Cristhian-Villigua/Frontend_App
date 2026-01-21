@@ -1,98 +1,114 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { View, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
-import { Text, Appbar } from "react-native-paper";
+import { Text, Appbar, Snackbar } from "react-native-paper";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import apiClient from "../../service/apiClient";
 import { stylesGlobal } from "./styles";
 
 export default function CategoriaScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { categoriaNombre } = route.params || { categoriaNombre: "Platos" };
+  const { categoriaId, categoriaNombre = "Categoría" } = route.params || {};
+  const [platos, setPlatos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
 
-  const platos = [
-    { id: 1, nombre: "Carne Asada", precio: "15.0 USD", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500" },
-    { id: 2, nombre: "Tostada de Atún", precio: "13.0 USD", img: "https://images.unsplash.com/photo-1512838243191-e81e8f66f1fd?w=500" },
-    { id: 3, nombre: "Arroz con Pollo", precio: "11.0 USD", img: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=500" },
-    {
-      id: 4,
-      nombre: "Hamburguesa Royal",
-      descripcion: "Carne angus, huevo, queso y tocino.",
-      precio: "$8.50",
-      img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500"
-    },
-    {
-      id: 5,
-      nombre: "Pizza Napolitana",
-      descripcion: "Salsa de tomate casera y mozzarella.",
-      precio: "$12.00",
-      img: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500"
-    },
-    {
-      id: 6,
-      nombre: "Ensalada César",
-      descripcion: "Pollo grillado, lechuga romana y crotones.",
-      precio: "$6.50",
-      img: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=500"
-    },
-    {
-      id: 7,
-      nombre: "Tacos al Pastor",
-      descripcion: "3 piezas con piña, cilantro y cebolla.",
-      precio: "$7.00",
-      img: "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500"
+  const refreshPlatos = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get(`/api/categories/${categoriaId}`); 
+      const data = response.data.items || [];
+
+      const parsedPlatos = data.map(item => ({
+        ...item,
+        picUrl: Array.isArray(item.picUrl) ? item.picUrl : []
+      }));
+      setPlatos(parsedPlatos);
+
+      if (parsedPlatos.length === 0) {
+        setSnackbarVisible(true);
+      }
+
+    } catch (error) {
+      console.log(error);
+      setSnackbarVisible(true);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    refreshPlatos();
+  }, []);
 
   return (
     <View style={styles.container}>
-      {/* Header Rojo*/}
+      {/* Header */}
       <Appbar.Header style={stylesGlobal.appbar}>
         <Appbar.BackAction color="white" onPress={() => navigation.goBack()} />
         <Appbar.Content title={categoriaNombre} titleStyle={stylesGlobal.headerTitle} />
-        <Appbar.Action icon="heart" color="white" onPress={() => { }} style={{ opacity: 0 }} disabled />
+        <View style={{ width: 52 }} />
       </Appbar.Header>
 
       <FlatList
         data={platos}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContent}
+        refreshing={loading}
+        onRefresh={refreshPlatos}
         renderItem={({ item, index }) => {
-          const isEven = index % 2 === 0; // Alterna la posición
+          const isEven = index % 2 === 0;
 
           return (
             <TouchableOpacity
               activeOpacity={0.9}
-              onPress={() => navigation.navigate('Detalle', { plato: item })}
+              onPress={() => navigation.navigate("Detalle", { plato: item })}
               style={[
                 styles.rowContainer,
-                { flexDirection: isEven ? 'row' : 'row-reverse' }
+                { flexDirection: isEven ? "row" : "row-reverse" }
               ]}
             >
-              {/* Cuadro de Texto Blanco */}
-              <View style={[
-                styles.infoCard,
-                isEven ? styles.infoLeft : styles.infoRight
-              ]}>
-                <Text style={styles.nombre}>{item.nombre}</Text>
+              {/* Info */}
+              <View
+                style={[
+                  styles.infoCard,
+                  isEven ? styles.infoLeft : styles.infoRight
+                ]}
+              >
+                <Text style={styles.nombre}>{item.title}</Text>
+
                 <View style={styles.starsRow}>
                   {[1, 2, 3, 4, 5].map((s) => (
                     <Text key={s} style={styles.star}>★</Text>
                   ))}
                 </View>
-                <Text style={styles.precio}>{item.precio}</Text>
+
+                <Text style={styles.precio}>${item.price}</Text>
               </View>
 
-              {/* Imagen Ovalada Escalada */}
+              {/* Imagen */}
               <View style={styles.imageWrapper}>
-                <Image source={{ uri: item.img }} style={styles.image} />
+                <Image
+                  source={{ uri: item.picUrl[0] }}
+                  style={styles.image}
+                />
               </View>
             </TouchableOpacity>
           );
         }}
       />
+
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={3000}
+      >
+        No hay platos en esta categoría
+      </Snackbar>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff4ea' },

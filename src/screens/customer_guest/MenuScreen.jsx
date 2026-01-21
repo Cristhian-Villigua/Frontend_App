@@ -1,63 +1,59 @@
-import { useState } from "react";
-import { Text, IconButton, Chip, Appbar } from "react-native-paper";
-import { useAppContext } from "../../context/AppContext";
+import { useEffect, useState } from "react";
+import { Text, IconButton, Chip, Appbar, Snackbar } from "react-native-paper";
 import { View, StyleSheet, ScrollView, Image, FlatList, ImageBackground, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import apiClient from "../../service/apiClient";
 import { stylesGlobal } from "./styles";
 
 export default function MenuScreen() {
-  const { user } = useAppContext();
   const navigation = useNavigation();
-  const categorias = [
-    { id: '1', nombre: 'Entradas', slug: 'entradas' },
-    { id: '2', nombre: 'Platos Principales', slug: 'principales' },
-    { id: '3', nombre: 'Postres', slug: 'postres' },
-  ];
+  const [categories, setCategories] = useState([]);
+  const [popularItems, setPopularItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
 
-  const platos = [
-    {
-      id: 1,
-      nombre: "Hamburguesa Royal",
-      descripcion: "Carne angus, huevo, queso y tocino.",
-      precio: "$8.50",
-      img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500"
-    },
-    {
-      id: 2,
-      nombre: "Pizza Napolitana",
-      descripcion: "Salsa de tomate casera y mozzarella.",
-      precio: "$12.00",
-      img: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500"
-    },
-    {
-      id: 3,
-      nombre: "Ensalada César",
-      descripcion: "Pollo grillado, lechuga romana y crotones.",
-      precio: "$6.50",
-      img: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=500"
-    },
-    {
-      id: 4,
-      nombre: "Tacos al Pastor",
-      descripcion: "3 piezas con piña, cilantro y cebolla.",
-      precio: "$7.00",
-      img: "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500"
+  useEffect(() => {
+    fetchMenu();
+  }, []);
+
+  const fetchMenu = async () => {
+    try {
+      setLoading(true);
+      const { data } = await apiClient.get("/api/categories");
+      setCategories(data);
+
+      // Extraer y limpiar items
+      let allItems = [];
+      data.forEach(cat => {
+        if (cat.items && cat.items.length > 0) {
+          const cleanedItems = cat.items.map(item => {
+            let images = [];
+            try {
+              // Manejo de picUrl como string JSON o Array
+              images = typeof item.picUrl === 'string' ? JSON.parse(item.picUrl) : item.picUrl;
+            } catch (e) {
+              images = [item.picUrl];
+            }
+            return { ...item, picUrl: Array.isArray(images) ? images : [images] };
+          });
+          allItems = [...allItems, ...cleanedItems];
+        }
+      });
+
+      setPopularItems(allItems.slice(0, 4));
+    } catch (error) {
+      console.error(error);
+      setSnackbarVisible(true);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  return (
-    <View style={styles.container}>
-      {/* Header Rojo */}
-      <Appbar.Header style={stylesGlobal.appbar}>
-        <Appbar.BackAction color="white" onPress={() => { }} style={{ opacity: 0 }} disabled />
-        <Appbar.Content title="Menú Principal" titleStyle={stylesGlobal.headerTitle} />
-        <Appbar.Action color="white" onPress={() => { }} style={{ opacity: 0 }} disabled />
-      </Appbar.Header>
-
-      {/* Banner de GourmetGo */}
+  const renderHeader = () => (
+    <View>
       <View style={styles.bannerContainer}>
         <ImageBackground
-          source={{ uri: 'https://tu-url-de-imagen-de-fondo.com/comida.jpg' }}
+          source={{ uri: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200" }}
           style={styles.bannerImage}
           imageStyle={{ borderRadius: 100 }}
         >
@@ -67,56 +63,66 @@ export default function MenuScreen() {
         </ImageBackground>
       </View>
 
-      {/* Categorías */}
       <View style={styles.sectionHeader}>
         <Text variant="headlineSmall" style={styles.sectionTitle}>Categorías</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-          {categorias.map((cat) => (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{marginTop: 10}}>
+          {categories.map(cat => (
             <Chip
               key={cat.id}
               style={styles.chip}
-              onPress={() => navigation.navigate("Categoria", { categoriaNombre: cat.nombre, categoriaId: cat.id })}
+              onPress={() => navigation.navigate("Categoria", { categoriaId: cat.id, categoriaNombre: cat.title })}
             >
-              {cat.nombre}
+              {cat.title}
             </Chip>
           ))}
         </ScrollView>
       </View>
 
-      {/* Platos Populares */}
       <View style={styles.listHeader}>
         <Text variant="titleLarge" style={styles.sectionTitle}>Platos Populares</Text>
-        <Text style={styles.verMas}>Ver más</Text>
       </View>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <Appbar.Header style={stylesGlobal.appbar}>
+        <Appbar.Content title="Menú Principal" titleStyle={stylesGlobal.headerTitle} />
+      </Appbar.Header>
 
       <FlatList
-        data={platos}
+        data={popularItems}
         numColumns={2}
         keyExtractor={(item) => item.id.toString()}
+        ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.grid}
+        refreshing={loading}
+        onRefresh={fetchMenu}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
-            onPress={() => navigation.navigate('Detalle', { plato: item })}>
-            <Image source={{ uri: item.img }} style={styles.image} />
-            <Text variant="titleMedium" style={styles.nombrePlato}>{item.nombre}</Text>
+            onPress={() => navigation.navigate("Detalle", { plato: item })}
+          >
+            <Image 
+              source={{ uri: item.picUrl[0] || 'https://via.placeholder.com/150' }} 
+              style={styles.image} 
+            />
+            <Text variant="titleMedium" numberOfLines={1} style={styles.nombrePlato}>{item.title}</Text>
             <View style={styles.footerCard}>
-              <Text style={styles.precio}>{item.precio}</Text>
-              <IconButton
-                icon="plus"
-                mode="contained"
-                containerColor="#1a0a05"
-                iconColor="white"
-                size={24}
-                onPress={() => { /* Lógica para agregar al carrito */ }}
-              />
+              <Text style={styles.precio}>${item.price}</Text>
+              <IconButton icon="plus" mode="contained" containerColor="#1a0a05" iconColor="white" size={20} />
             </View>
           </TouchableOpacity>
         )}
       />
+
+      <Snackbar visible={snackbarVisible} onDismiss={() => setSnackbarVisible(false)}>
+        Error al cargar los datos
+      </Snackbar>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff4ea' },
