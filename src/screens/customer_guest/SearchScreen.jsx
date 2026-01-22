@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { View, StyleSheet, FlatList, Image, TouchableOpacity, TextInput } from "react-native";
 import { Text, Appbar, Snackbar, Menu, Button } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
+import { FontAwesome } from "@expo/vector-icons";
 import apiClient from "../../service/apiClient";
 import { stylesGlobal } from "./styles";
 
@@ -90,75 +91,80 @@ export default function SearchScreen() {
   }, []);
 
   return (
-    <View style={stylesGlobal.container}>
-      <Appbar.Header style={stylesGlobal.appbar}>
-        <Appbar.Content title="Buscar" titleStyle={stylesGlobal.headerTitle} />
-      </Appbar.Header>
+  <View style={stylesGlobal.container}>
+    {/* HEADER */}
+    <Appbar.Header style={stylesGlobal.appbar}>
+      <Appbar.Content title="Buscar" titleStyle={stylesGlobal.headerTitle} />
+    </Appbar.Header>
 
-      {/* Input búsqueda */}
-      <TextInput
-        placeholder="Buscar plato..."
-        value={searchText}
-        onChangeText={handleSearchTextChange}
-        style={styles.searchInput}
-      />
+    {/* INPUT BÚSQUEDA */}
+    <TextInput
+      placeholder="Buscar plato..."
+      value={searchText}
+      onChangeText={handleSearchTextChange}
+      style={styles.searchInput}
+    />
 
-      {/* Botones categoría / limpiar */}
-      <View style={styles.actionsRow}>
-
-        {/* Categoría - IZQUIERDA */}
-        <View style={styles.dropdownContainer}>
-          <Menu
-            visible={menuVisible}
-            onDismiss={() => setMenuVisible(false)}
-            anchor={
-              <Button
-                mode="contained"
-                onPress={() => setMenuVisible(true)}
-                style={styles.btnCategory}
-                icon="chevron-down"
-                contentStyle={{ flexDirection: "row-reverse" }}
-                labelStyle={styles.btnLabel}
-              >
-                {selectedCategoria ? selectedCategoria.title : "Categorías"}
-              </Button>
-            }
-          >
-            <Menu.Item title="Todas" onPress={() => selectCategoria(null)} />
-            {categorias.map(c => (
-              <Menu.Item
-                key={c.id.toString()}
-                title={c.title}
-                onPress={() => selectCategoria(c)}
-              />
-            ))}
-          </Menu>
-        </View>
-
-        {/* Limpiar - DERECHA */}
-        <Button
-          mode="contained"
-          onPress={clearFilters}
-          style={styles.btnClear}
-          icon="delete-outline"
-          labelStyle={styles.btnLabel}
+    {/* BOTONES */}
+    <View style={styles.actionsRow}>
+      {/* CATEGORÍAS */}
+      <View style={styles.dropdownContainer}>
+        <Menu
+          visible={menuVisible}
+          onDismiss={() => setMenuVisible(false)}
+          anchor={
+            <Button
+              mode="contained"
+              onPress={() => setMenuVisible(true)}
+              style={styles.btnCategory}
+              icon="chevron-down"
+              contentStyle={{ flexDirection: "row-reverse" }}
+              labelStyle={styles.btnLabel}
+            >
+              {selectedCategoria ? selectedCategoria.title : "Categorías"}
+            </Button>
+          }
         >
-          Limpiar
-        </Button>
-
+          <Menu.Item title="Todas" onPress={() => selectCategoria(null)} />
+          {categorias.map(c => (
+            <Menu.Item
+              key={c.id.toString()}
+              title={c.title}
+              onPress={() => selectCategoria(c)}
+            />
+          ))}
+        </Menu>
       </View>
 
-      {/* Mensaje central */}
-      {!searchText && (
+      {/* LIMPIAR */}
+      <Button
+        mode="contained"
+        onPress={clearFilters}
+        style={styles.btnClear}
+        icon="delete-outline"
+        labelStyle={styles.btnLabel}
+      >
+        Limpiar
+      </Button>
+    </View>
+
+    {/* CONTENIDO CENTRAL */}
+    <View style={{ flex: 1 }}>
+      {!searchText ? (
+        /* MENSAJE CENTRAL */
         <View style={styles.centerMessage}>
-          <Text style={{ fontSize: 16, color: "#555" }}>
+          <FontAwesome name="search" size={70} color="#bbb" />
+
+          <Text style={styles.centerTitle}>
+            Busca tus platos favoritos
+          </Text>
+
+          <Text style={styles.centerSubtitle}>
             Escribe algo para buscar los platos
           </Text>
         </View>
-      )}
-
-      {/* Lista */}
-      {searchText && (
+      ) : (
+        /* LISTA RESULTADOS */
         <FlatList
           data={filteredPlatos}
           keyExtractor={(item) => item.id.toString()}
@@ -171,43 +177,58 @@ export default function SearchScreen() {
             return (
               <TouchableOpacity
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate("Detalle", { plato: item })}
+                onPress={() =>
+                  navigation.navigate("Detalle", { plato: item })
+                }
                 style={[
                   stylesGlobal.rowContainer,
                   { flexDirection: isEven ? "row" : "row-reverse" }
                 ]}
               >
-                <View style={[
-                  stylesGlobal.infoCard,
-                  isEven ? stylesGlobal.infoLeft : stylesGlobal.infoRight
-                ]}>
+                <View
+                  style={[
+                    stylesGlobal.infoCard,
+                    isEven
+                      ? stylesGlobal.infoLeft
+                      : stylesGlobal.infoRight
+                  ]}
+                >
                   <Text style={stylesGlobal.nombre}>{item.title}</Text>
+
                   <View style={stylesGlobal.starsRow}>
-                    {[1,2,3,4,5].map(s => (
+                    {[1, 2, 3, 4, 5].map(s => (
                       <Text key={s} style={stylesGlobal.star}>★</Text>
                     ))}
                   </View>
-                  <Text style={stylesGlobal.precio}>${item.price}</Text>
+
+                  <Text style={stylesGlobal.precio}>
+                    ${item.price}
+                  </Text>
                 </View>
 
                 <View style={stylesGlobal.imageWrapper}>
-                  <Image source={{ uri: item.picUrl[0] }} style={stylesGlobal.image} />
+                  <Image
+                    source={{ uri: item.picUrl[0] }}
+                    style={stylesGlobal.image}
+                  />
                 </View>
               </TouchableOpacity>
             );
           }}
         />
       )}
-
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-        duration={3000}
-      >
-        No hay productos para mostrar
-      </Snackbar>
     </View>
-  );
+
+    {/* SNACKBAR */}
+    <Snackbar
+      visible={snackbarVisible}
+      onDismiss={() => setSnackbarVisible(false)}
+      duration={3000}
+    >
+      No hay productos para mostrar
+    </Snackbar>
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
@@ -253,5 +274,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    padding: 40,
+  },
+
+  centerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 15,
+  },
+
+  centerSubtitle: {
+    fontSize: 16,
+    color: "#555",
+    marginTop: 5,
+    textAlign: "center",
   },
 });

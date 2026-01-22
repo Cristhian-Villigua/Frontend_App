@@ -1,33 +1,76 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from "react-native";
+import React, { useState, useMemo, useCallback } from "react";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TouchableOpacity
+} from "react-native";
 import { Text, IconButton, Divider, Appbar } from "react-native-paper";
+import { FontAwesome } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import { stylesGlobal } from "./styles";
 
-export default function CarritoScreen({ route }) {
+export default function CartScreen() {
 
   const [carrito, setCarrito] = useState([]);
 
-  useEffect(() => {
-    if (route.params?.items) {
-      setCarrito(route.params.items);
+  const cargarCarrito = async () => {
+    try {
+      const stored = await AsyncStorage.getItem("cart");
+      setCarrito(stored ? JSON.parse(stored) : []);
+    } catch (e) {
+      console.log("Error loading cart:", e);
     }
-  }, [route.params?.items]);
+  };
 
-  const carritoOrdenado = useMemo(() => {
-    return [...carrito].sort((a, b) =>
-      a.nombre.localeCompare(b.nombre)
+  useFocusEffect(
+    useCallback(() => {
+      cargarCarrito();
+    }, [])
+  );
+
+  const guardarCarrito = async (data) => {
+    setCarrito(data);
+    await AsyncStorage.setItem("cart", JSON.stringify(data));
+  };
+
+  const cambiarCantidad = (id, delta) => {
+    const actualizado = carrito.map(item =>
+      item.id === id
+        ? { ...item, cantidad: Math.max(item.cantidad + delta, 1) }
+        : item
     );
-  }, [carrito]);
-  
+    guardarCarrito(actualizado);
+  };
 
-  const subTotal = carritoOrdenado.reduce((acc, item) => {
-    return acc + parseFloat(item.precio) * item.cantidad;
-  }, 0);
+  const eliminarItem = (id) => {
+    const filtrado = carrito.filter(item => item.id !== id);
+    guardarCarrito(filtrado);
+  };
 
-  const impuesto = subTotal * 0.02;
+  const limpiarCarrito = async () => {
+    setCarrito([]);
+    await AsyncStorage.removeItem("cart");
+  };
+
+  const carritoOrdenado = useMemo(
+    () => [...carrito].sort((a, b) => a.nombre.localeCompare(b.nombre)),
+    [carrito]
+  );
+
+  const subTotal = carritoOrdenado.reduce(
+    (acc, item) => acc + parseFloat(item.precio) * item.cantidad,
+    0
+  );
+
+  const TASA_IVA = 0.12;
+
+  const impuesto = subTotal * TASA_IVA;
+
   const total = subTotal + impuesto;
 
-  // 🔹 FUNCIÓN VACÍA PARA ENVIAR DATOS
   const ordenarPedido = () => {
     const payload = {
       items: carritoOrdenado,
@@ -35,17 +78,38 @@ export default function CarritoScreen({ route }) {
       impuesto,
       total
     };
-
-    console.log("Pedido listo para enviar:", payload);
-    // apiClient.post("/api/orders", payload)
+    console.log("Pedido listo:", payload);
   };
 
   return (
     <View style={[stylesGlobal.container, { flex: 1 }]}>
       <Appbar.Header style={stylesGlobal.appbar}>
-        <Appbar.Content title="Carrito" titleStyle={stylesGlobal.headerTitle} />
+        <Appbar.Action icon="arrow-left" style={{ opacity: 0 }} onPress={() => { }} disabled/>
+        <Appbar.Content title="Carrito" titleStyle={stylesGlobal.headerTitle}/>
+        {carrito.length > 0 ? (
+          <Appbar.Action icon="delete" color="white" onPress={limpiarCarrito}/>
+        ) : (
+          <Appbar.Action icon="delete" style={{ opacity: 0 }} onPress={() => { }} disabled/>
+        )}
       </Appbar.Header>
 
+      {carritoOrdenado.length === 0 ? (
+  // 🛒 CARRITO VACÍO
+  <View style={styles.emptyContainer}>
+    <FontAwesome
+      name="shopping-cart"
+      size={70}
+      color="#bbb"
+    />
+    <Text style={styles.emptyText}>
+      Tu carrito está vacío
+    </Text>
+    <Text style={styles.emptySubText}>
+      Agrega productos para continuar
+    </Text>
+  </View>
+) : (
+      // 🧾 CARRITO CON ITEMS
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {carritoOrdenado.map(item => (
           <View key={item.id} style={styles.cartCard}>
@@ -54,15 +118,43 @@ export default function CarritoScreen({ route }) {
             <View style={styles.infoContainer}>
               <Text style={styles.productName}>{item.nombre}</Text>
               <Text style={styles.productPrice}>${item.precio}</Text>
-              <Text>Cantidad: {item.cantidad}</Text>
+
+              {/* STEPPER */}
+              <View style={styles.stepper}>
+                <TouchableOpacity
+                  style={styles.stepperBtn}
+                  onPress={() => cambiarCantidad(item.id, -1)}
+                >
+                  <Text style={styles.stepperText}>−</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.qtyText}>{item.cantidad}</Text>
+
+                <TouchableOpacity
+                  style={styles.stepperBtn}
+                  onPress={() => cambiarCantidad(item.id, 1)}
+                >
+                  <Text style={styles.stepperText}>+</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <Text style={styles.itemTotal}>
-              ${(parseFloat(item.precio) * item.cantidad).toFixed(2)}
-            </Text>
+            {/* DERECHA */}
+            <View style={styles.rightAction}>
+              <IconButton
+                icon="close"
+                size={20}
+                style={styles.closeBtn}
+                onPress={() => eliminarItem(item.id)}
+              />
+              <Text style={styles.itemTotal}>
+                ${(item.precio * item.cantidad).toFixed(2)}
+              </Text>
+            </View>
           </View>
         ))}
       </ScrollView>
+    )}
 
       <View style={styles.footer}>
         <View style={styles.totalRow}>
@@ -71,7 +163,7 @@ export default function CarritoScreen({ route }) {
         </View>
 
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Impuesto</Text>
+          <Text style={styles.totalLabel}>Impuesto (12%)</Text>
           <Text style={styles.totalValue}>${impuesto.toFixed(2)}</Text>
         </View>
 
@@ -146,5 +238,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 25,
   },
-  orderBtnText: { color: 'white', fontSize: 18, fontWeight: 'bold' }
+  orderBtnText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
+  emptyContainer: {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+  padding: 40,
+},
+
+emptyText: {
+  fontSize: 20,
+  fontWeight: "bold",
+  marginTop: 15,
+},
+
+emptySubText: {
+  fontSize: 16,
+  color: "gray",
+  marginTop: 5,
+  textAlign: "center",
+},
 });

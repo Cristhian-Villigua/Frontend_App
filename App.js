@@ -38,7 +38,6 @@ function MainApp() {
             <Stack.Screen name="Dashboard" component={DashboardTabs} />
             <Stack.Screen name="Categoria" component={CategoriaScreen} />
             <Stack.Screen name="Detalle" component={DetalleScreen} />
-            <Stack.Screen name="CarritoScreen" component={CarritoScreen} />
           </>
           )}
         </Stack.Navigator>
