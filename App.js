@@ -11,7 +11,8 @@ import LoginScreenWeb from "./src/screens/web/auth/LoginScreen";
 import LoginScreenMobile from "./src/screens/mobile/auth/LoginScreen";
 import CategoriaScreen from "./src/screens/customer_guest/CategoriaScreen";
 import DetalleScreen from "./src/screens/customer_guest/DetalleScreen";
-import CarritoScreen from "./src/screens/customer_guest/CartScreen";
+import ProfileScreen from "./src/screens/general/ProfileScreen";
+import EditProfileScreen from "./src/screens/general/EditProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -38,6 +39,8 @@ function MainApp() {
             <Stack.Screen name="Dashboard" component={DashboardTabs} />
             <Stack.Screen name="Categoria" component={CategoriaScreen} />
             <Stack.Screen name="Detalle" component={DetalleScreen} />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           </>
           )}
         </Stack.Navigator>

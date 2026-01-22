@@ -5,7 +5,7 @@ import MenuScreen from "../screens/customer_guest/MenuScreen";
 import CartScreen from "../screens/customer_guest/CartScreen";
 import SearchScreen from "../screens/customer_guest/SearchScreen";
 import HistoryScreen from "../screens/customer_guest/HistoryScreen";
-import ProfileScreen from "../screens/customer_guest/ProfileScreen";
+import AccountScreen from "../screens/general/AccountScreen";
 const Tab = createBottomTabNavigator();
 export default function DashboardTabs() {
     const insets = useSafeAreaInsets();
@@ -70,7 +70,7 @@ export default function DashboardTabs() {
            <Tab.Screen name="Carrito" component={CartScreen} />
            <Tab.Screen name="Buscar" component={SearchScreen} />
            <Tab.Screen name="Historial" component={HistoryScreen} />
-           <Tab.Screen name="Perfil" component={ProfileScreen} />
+           <Tab.Screen name="Perfil" component={AccountScreen} />
         </Tab.Navigator>
     );
 }

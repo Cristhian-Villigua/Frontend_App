@@ -262,7 +262,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#1a0a05",
     height: 45,
     justifyContent: "center",
-    minWidth: 100,
   },
 
   btnLabel: {
