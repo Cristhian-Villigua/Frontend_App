@@ -8,51 +8,89 @@ const AppContext = createContext();
 export function AppProvider({ children }) {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [user, setUser] = useState(null);
+  const [userType, setUserType] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [token, setToken] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
 
-  const login = async (userData, tokenValue) => {
+  const login = async (userData, tokenValue, type, role = null) => {
     setUser(userData);
     setToken(tokenValue);
-    await AsyncStorage.setItem("token", tokenValue);
-    await AsyncStorage.setItem("user", JSON.stringify(userData));
+    setUserType(type);
+    setUserRole(role);
+
+    await AsyncStorage.multiSet([
+      ["token", tokenValue],
+      ["user", JSON.stringify(userData)],
+      ["userType", type],
+      ["userRole", role ?? ""],
+    ]);
   };
 
 
   const logout = async () => {
     try {
       await apiClient.post("/logout");
-    } catch (e) {}
-      setUser(null);
-      setToken(null);
-      await AsyncStorage.removeItem("token");
-      await AsyncStorage.removeItem("user");
-    };
-    useEffect(() => {
-      const loadSession = async () => {
-      const storedToken = await AsyncStorage.getItem("token");
-      const storedUser = await AsyncStorage.getItem("user");
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+    } catch (e) { }
+
+    setUser(null);
+    setToken(null);
+    setUserType(null);
+    setUserRole(null);
+
+    await AsyncStorage.multiRemove([
+      "token",
+      "user",
+      "userType",
+      "userRole",
+    ]);
+  };
+
+
+  useEffect(() => {
+    const loadSession = async () => {
+      const token = await AsyncStorage.getItem("token");
+      const user = await AsyncStorage.getItem("user");
+      const userType = await AsyncStorage.getItem("userType");
+      const userRole = await AsyncStorage.getItem("userRole");
+
+      if (token && user && userType) {
+        setToken(token);
+        setUser(JSON.parse(user));
+        setUserType(userType);
+        setUserRole(userRole || null);
       }
-        setLoadingAuth(false);
-      };
-        loadSession();
-    }, []);
+
+      setLoadingAuth(false);
+    };
+
+    loadSession();
+  }, []);
 
 
   const toggleTheme = () => setIsDarkTheme((prev) => !prev);
+
   const paperTheme = isDarkTheme ? PaperDarkTheme : PaperLightTheme;
+
   const value = useMemo(
-    () => ({ user, token, login, logout, loadingAuth, isDarkTheme,
-    toggleTheme, paperTheme }),
-    [user, token, isDarkTheme, paperTheme, loadingAuth]
+    () => ({
+      user,
+      token,
+      userType,
+      userRole,
+      login,
+      logout,
+      loadingAuth,
+      isDarkTheme,
+      toggleTheme,
+      paperTheme,
+    }),
+    [user, token, userType, userRole, isDarkTheme, paperTheme, loadingAuth]
   );
-  return <AppContext.Provider
-  value={value}>{children}</AppContext.Provider>;
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
 export function useAppContext() {
- return useContext(AppContext);
+  return useContext(AppContext);
 }

@@ -7,14 +7,24 @@ import { stylesGlobal } from "../customer_guest/styles";
 import { stylesProfile } from "../general/styles";
 
 export default function ProfileScreen({ navigation }) {
-  const { isDarkTheme } = useAppContext();
+  const { isDarkTheme, user, userType } = useAppContext();
 
   const [profile, setProfile] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadProfile = async () => {
+    setRefreshing(true);
+
     try {
-      const response = await apiClient.get("/api/me");
+      const isCliente = userType === "cliente";
+      let response;
+
+      if (isCliente) {
+        response = await apiClient.get("/api/me");
+      } else {
+        response = await apiClient.get("/api/usuarios/me");
+      }
+
       setProfile(response.data);
     } catch (error) {
       console.error("Error al obtener perfil:", error);
@@ -23,13 +33,12 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+
   useEffect(() => {
-    setRefreshing(true);
     loadProfile();
   }, []);
 
   const onRefresh = useCallback(() => {
-    setRefreshing(true);
     loadProfile();
   }, []);
 
@@ -39,16 +48,12 @@ export default function ProfileScreen({ navigation }) {
       <Appbar.Header style={stylesGlobal.appbar}>
         <Appbar.BackAction color="white" onPress={() => navigation.goBack()} />
         <Appbar.Content title="Mi Perfil" titleStyle={stylesGlobal.headerTitle} />
-        <Appbar.Action color="white" onPress={() => {}} style={{ opacity: 0 }} disabled />
+        <Appbar.Action color="white" style={{ opacity: 0 }} disabled />
       </Appbar.Header>
 
       <ScrollView
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={["#d32f2f"]}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#d32f2f"]} />
         }
       >
         {/* Card principal */}
@@ -59,9 +64,7 @@ export default function ProfileScreen({ navigation }) {
 
           <Card.Content>
             <Text style={stylesProfile.name}>
-              {profile
-                ? `${profile.nombres} ${profile.apellidos}`
-                : "—"}
+              {profile ? `${profile.nombres} ${profile.apellidos}` : "—"}
             </Text>
 
             <Text style={stylesProfile.email}>
@@ -101,11 +104,9 @@ export default function ProfileScreen({ navigation }) {
             title="Editar perfil"
             left={() => <List.Icon icon="account-edit" />}
             onPress={() =>
-                navigation.navigate("EditProfile", {
-                profile,
-                })
+              navigation.navigate("EditProfile", { profile })
             }
-            />
+          />
         </List.Section>
       </ScrollView>
     </View>

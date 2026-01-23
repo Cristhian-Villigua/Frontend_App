@@ -18,7 +18,7 @@ const formatDateToISO = (date) => {
 };
 
 export default function EditProfileScreen({ navigation, route }) {
-  const { isDarkTheme } = useAppContext();
+  const { isDarkTheme, user, userType } = useAppContext();
   const { profile } = route.params;
 
   const [loading, setLoading] = useState(false);
@@ -64,9 +64,16 @@ export default function EditProfileScreen({ navigation, route }) {
         photo: null,
       };
 
-      console.log("ENVIANDO:", payload);
+      const isCliente = userType === "cliente";
+      const isStaff = userType === "usuario";
 
-      await apiClient.put(`/api/clientes/${profile.id}`, payload);
+      if (isCliente) {
+        await apiClient.put(`/api/clientes/${profile.id}`, payload);
+      } else if (isStaff) {
+        await apiClient.put(`/api/usuarios/${profile.id}`, payload);
+      } else {
+        throw new Error("Tipo de usuario desconocido");
+      }
 
       setSnackbar(true);
       navigation.goBack();
@@ -79,6 +86,7 @@ export default function EditProfileScreen({ navigation, route }) {
       setLoading(false);
     }
   };
+
 
   return (
     <View
@@ -166,7 +174,7 @@ export default function EditProfileScreen({ navigation, route }) {
             loading={loading}
             onPress={handleSave}
             labelStyle={stylesProfile.btnLabel}
-            style={ stylesProfile.btnProfile }
+            style={stylesProfile.btnProfile}
           >
             Guardar cambios
           </Button>

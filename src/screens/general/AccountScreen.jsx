@@ -40,8 +40,8 @@ export default function AccountScreen({ navigation }) {
 
           <Card.Content>
             <Text style={stylesProfile.name}>
-              {user?.name && user?.lastname
-                ? `${user.name} ${user.lastname}`
+              {user?.nombres && user?.apellidos
+                ? `${user.nombres} ${user.apellidos}`
                 : "Usuario"}
             </Text>
 

@@ -6,8 +6,10 @@ import CartScreen from "../screens/customer_guest/CartScreen";
 import SearchScreen from "../screens/customer_guest/SearchScreen";
 import HistoryScreen from "../screens/customer_guest/HistoryScreen";
 import AccountScreen from "../screens/general/AccountScreen";
+import { useAppContext } from "../context/AppContext";
 const Tab = createBottomTabNavigator();
-export default function DashboardTabs() {
+export default function ClienteTabs() {
+    const { isDarkTheme } = useAppContext();
     const insets = useSafeAreaInsets();
     return (
         <Tab.Navigator
@@ -15,6 +17,7 @@ export default function DashboardTabs() {
                 headerShown: false,
                 tabBarHideOnKeyboard: true,
                 tabBarInactiveTintColor: "#fff",
+                tabBarActiveTintColor: isDarkTheme ? "#220C01" : "#d32f2f",
                 tabBarLabelStyle: {
                     fontSize: 12,
                     marginBottom: 4,
@@ -23,7 +26,7 @@ export default function DashboardTabs() {
                 tabBarStyle: {
                     height: 50 + insets.bottom,
                     paddingBottom: 6,
-                    backgroundColor: "#220C01",
+                    backgroundColor: isDarkTheme ? "#d32f2f" : "#220C01",
                     elevation: 0
                 },
 
