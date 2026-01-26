@@ -23,7 +23,6 @@ export default function DetalleScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
 
-  // 🔄 Pull to refresh
   const refreshPlato = useCallback(async () => {
     try {
       setRefreshing(true);
@@ -41,7 +40,6 @@ export default function DetalleScreen() {
     }
   }, [plato.id]);
 
-  // 🛒 Agregar al carrito
   const agregarAlCarrito = async () => {
     if (cantidad <= 0) return;
 
@@ -80,11 +78,10 @@ export default function DetalleScreen() {
 
   return (
     <View style={stylesGlobal.container}>
-      {/* Header */}
       <Appbar.Header style={stylesGlobal.appbar}>
         <Appbar.BackAction color="white" onPress={() => navigation.goBack()} />
         <Appbar.Content title="Detalle" titleStyle={stylesGlobal.headerTitle} />
-        <Appbar.Action icon="heart-outline" color="white" onPress={() => {}} />
+        <Appbar.Action icon="heart-outline" color="white" onPress={() => { }} />
       </Appbar.Header>
 
       <ScrollView
@@ -92,7 +89,6 @@ export default function DetalleScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={refreshPlato} />
         }
       >
-        {/* Imagen */}
         <Image
           source={{ uri: plato.picUrl[0] }}
           style={styles.imageMain}
@@ -102,7 +98,6 @@ export default function DetalleScreen() {
           <Text style={styles.nombrePlato}>{plato.title}</Text>
           <Text style={styles.categoriaTexto}>Plato principal</Text>
 
-          {/* Cantidad + rating */}
           <View style={styles.row}>
             <View style={styles.stepper}>
               <Text style={styles.qtyLabel}>Cantidad</Text>
@@ -134,7 +129,6 @@ export default function DetalleScreen() {
             {plato.description || "Sin descripción disponible."}
           </Text>
 
-          {/* Botón carrito */}
           <TouchableOpacity
             style={styles.btnCarrito}
             onPress={agregarAlCarrito}
@@ -148,7 +142,13 @@ export default function DetalleScreen() {
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
-        duration={2500}
+        duration={3000}
+        action={{
+          label: 'Ir al Carrito',
+          onPress: () => {
+            navigation.navigate('ClienteTabs', { screen: 'Carrito' });
+          },
+        }}
       >
         Producto agregado al carrito
       </Snackbar>

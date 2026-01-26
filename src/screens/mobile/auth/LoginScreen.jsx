@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View } from "react-native";
+import { View, ImageBackground } from "react-native";
 import { Button, Text, TextInput, Snackbar } from "react-native-paper";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { styles } from "./styles";
@@ -23,7 +23,6 @@ export default function LoginScreen({ navigation }) {
 
   const { email, emailError, handleEmailChange } = useForm();
 
-  const goToMenu = () => navigation.replace("Dashboard");
   const goToRegister = () => navigation.replace("Register");
 
   const localHandleEmailChange = (text) => {
@@ -45,13 +44,7 @@ export default function LoginScreen({ navigation }) {
         password,
       });
 
-    console.log("LOGIN RESPONSE", {
-  type: data.type,
-  role: data.role,
-  user: data.user,
-});
-
-    await login(data.user, data.token, data.type, data.role);
+      await login(data.user, data.token, data.type, data.role);
 
     } catch (error) {
       setSnackbarMessage("Credenciales incorrectas");
@@ -62,149 +55,149 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-  <View style={styles.container}>
-    <Text style={styles.title}>Login</Text>
-
-    {/* EMAIL */}
-    <TextInput
-      label="Correo"
-      mode="outlined"
-      activeOutlineColor={
-        emailError ? "red" : email ? "green" : "black"
-      }
-      value={email}
-      onChangeText={localHandleEmailChange}
-      style={styles.input}
-      keyboardType="email-address"
-      autoCapitalize="none"
-      maxLength={MAX_EMAIL_LENGTH}
-      error={!!emailError}
-      left={
-        <TextInput.Icon
-          icon={() => (
-            <FontAwesome6
-              name="envelope"
-              size={20}
-              color={emailError ? "red" : email ? "green" : "black"}
-              solid
-            />
-          )}
-        />
-      }
-      right={
-        email ? (
-          emailError ? (
-            <TextInput.Icon
-              icon={() => (
-                <FontAwesome6 name="circle-xmark" size={20} color="red" solid />
-              )}
-              onPress={() => handleEmailChange("")}
-            />
-          ) : (
-            <TextInput.Icon
-              icon={() => (
-                <FontAwesome6 name="circle-check" size={20} color="green" solid />
-              )}
-            />
-          )
-        ) : null
-      }
-    />
-
-    {emailError && (
-      <Text style={{ color: "red", marginTop: -8 }}>
-        {emailError}
-      </Text>
-    )}
-
-    {/* PASSWORD */}
-    <TextInput
-      label="Contraseña"
-      mode="outlined"
-      activeOutlineColor={
-        passwordError ? "red" : password ? "green" : "black"
-      }
-      value={password}
-      onChangeText={(text) => {
-        setPassword(text);
-        const v = validatePassword(text);
-        setPasswordError(v.message);
-      }}
-      secureTextEntry={!showPassword}
-      style={styles.input}
-      maxLength={PASSWORD_LENGTH}
-      error={!!passwordError}
-      left={
-        <TextInput.Icon
-          icon={() => (
-            <FontAwesome6
-              name="lock"
-              size={20}
-              color={passwordError ? "red" : password ? "green" : "black"}
-              solid
-            />
-          )}
-        />
-      }
-      right={
-        password ? (
-          passwordError ? (
-            <TextInput.Icon
-              icon={() => (
-                <FontAwesome6 name="circle-xmark" size={20} color="red" solid />
-              )}
-              onPress={() => setPassword("")}
-            />
-          ) : (
-            <TextInput.Icon
-              icon={() => (
-                <FontAwesome6 name="eye" size={20} color="green" solid />
-              )}
-              onPress={() => setShowPassword(!showPassword)}
-            />
-          )
-        ) : null
-      }
-    />
-
-    {passwordError && (
-      <Text style={{ color: "red", marginTop: -8 }}>
-        {passwordError}
-      </Text>
-    )}
-
-    {/* BUTTON */}
-    <Button
-      mode="contained"
-      loading={loading}
-      style={styles.button}
-      onPress={handleLogin}
+    <ImageBackground
+      source={require('../../../../assets/background_auth.jpg')}
+      style={{ flex: 1, justifyContent: 'center' }}
+      resizeMode="cover"
     >
-      Iniciar Sesión
-    </Button>
+      <View style={[styles.container, { backgroundColor: 'rgba(255, 255, 255, 0.9)', margin: 20, borderRadius: 20, padding: 20, flex: 0 }]}>
+        <Text style={styles.title}>Login</Text>
 
-    {/* LINKS */}
-    <Text style={styles.link}>
-      ¿No tienes cuenta?{" "}
-      <Text style={{ color: "red" }} onPress={goToRegister}>
-        Registrarse
-      </Text>
-    </Text>
+        {/* EMAIL */}
+        <TextInput
+          label="Correo"
+          mode="outlined"
+          activeOutlineColor={
+            emailError ? "red" : email ? "green" : "black"
+          }
+          value={email}
+          onChangeText={localHandleEmailChange}
+          style={styles.input}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          maxLength={MAX_EMAIL_LENGTH}
+          error={!!emailError}
+          left={
+            <TextInput.Icon
+              icon={() => (
+                <FontAwesome6
+                  name="envelope"
+                  size={20}
+                  color={emailError ? "red" : email ? "green" : "black"}
+                  solid
+                />
+              )}
+            />
+          }
+          right={
+            email ? (
+              emailError ? (
+                <TextInput.Icon
+                  icon={() => (
+                    <FontAwesome6 name="circle-xmark" size={20} color="red" solid />
+                  )}
+                  onPress={() => handleEmailChange("")}
+                />
+              ) : (
+                <TextInput.Icon
+                  icon={() => (
+                    <FontAwesome6 name="circle-check" size={20} color="green" solid />
+                  )}
+                />
+              )
+            ) : null
+          }
+        />
 
-    {/* <Text style={styles.link}>
-      Ingresa como invitado{" "}
-      <Text style={{ color: "red" }} onPress={goToMenu}>
-        Invitado
-      </Text>
-    </Text> */}
+        {emailError && (
+          <Text style={{ color: "red", marginTop: -8 }}>
+            {emailError}
+          </Text>
+        )}
 
-    <Snackbar
-      visible={snackbarVisible}
-      onDismiss={() => setSnackbarVisible(false)}
-      duration={3000}
-    >
-      {snackbarMessage}
-    </Snackbar>
-  </View>
-);
+        {/* PASSWORD */}
+        <TextInput
+          label="Contraseña"
+          mode="outlined"
+          activeOutlineColor={
+            passwordError ? "red" : password ? "green" : "black"
+          }
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            const v = validatePassword(text);
+            setPasswordError(v.message);
+          }}
+          secureTextEntry={!showPassword}
+          style={styles.input}
+          maxLength={PASSWORD_LENGTH}
+          error={!!passwordError}
+          left={
+            <TextInput.Icon
+              icon={() => (
+                <FontAwesome6
+                  name="lock"
+                  size={20}
+                  color={passwordError ? "red" : password ? "green" : "black"}
+                  solid
+                />
+              )}
+            />
+          }
+          right={
+            password ? (
+              passwordError ? (
+                <TextInput.Icon
+                  icon={() => (
+                    <FontAwesome6 name="circle-xmark" size={20} color="red" solid />
+                  )}
+                  onPress={() => setPassword("")}
+                />
+              ) : (
+                <TextInput.Icon
+                  icon={() => (
+                    <FontAwesome6 name="eye" size={20} color="green" solid />
+                  )}
+                  onPress={() => setShowPassword(!showPassword)}
+                />
+              )
+            ) : null
+          }
+        />
+
+        {passwordError && (
+          <Text style={{ color: "red", marginTop: -8 }}>
+            {passwordError}
+          </Text>
+        )}
+
+        {/* BUTTON */}
+        <Button
+          mode="contained"
+          loading={loading}
+          style={styles.button}
+          onPress={handleLogin}
+          buttonColor="#d32f2f"
+        >
+          Iniciar Sesión
+        </Button>
+
+        {/* LINKS */}
+        <Text style={styles.link}>
+          ¿No tienes cuenta?{" "}
+          <Text style={{ color: "red" }} onPress={goToRegister}>
+            Registrarse
+          </Text>
+        </Text>
+
+        <Snackbar
+          visible={snackbarVisible}
+          onDismiss={() => setSnackbarVisible(false)}
+          duration={3000}
+        >
+          {snackbarMessage}
+        </Snackbar>
+      </View>
+    </ImageBackground>
+  );
 }

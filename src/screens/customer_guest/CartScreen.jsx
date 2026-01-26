@@ -9,11 +9,13 @@ import {
 import { Text, IconButton, Divider, Appbar } from "react-native-paper";
 import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import apiClient from "../../service/apiClient";
 import { stylesGlobal } from "./styles";
 
 export default function CartScreen() {
 
+  const navigation = useNavigation();
   const [carrito, setCarrito] = useState([]);
 
   const cargarCarrito = async () => {
@@ -71,90 +73,102 @@ export default function CartScreen() {
 
   const total = subTotal + impuesto;
 
-  const ordenarPedido = () => {
+  const [loading, setLoading] = useState(false);
+
+  const ordenarPedido = async () => {
+    if (carrito.length === 0) return;
+
+    setLoading(true);
     const payload = {
       items: carritoOrdenado,
       subTotal,
       impuesto,
       total
     };
-    console.log("Pedido listo:", payload);
+
+    try {
+      await apiClient.post("/api/orders", payload);
+      alert("¡Pedido realizado con éxito!");
+      await limpiarCarrito();
+      navigation.navigate("Historial");
+    } catch (error) {
+      console.error("Error creating order:", error);
+      alert("Hubo un error al procesar tu pedido. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View style={[stylesGlobal.container, { flex: 1 }]}>
       <Appbar.Header style={stylesGlobal.appbar}>
-        <Appbar.Action icon="arrow-left" style={{ opacity: 0 }} onPress={() => { }} disabled/>
-        <Appbar.Content title="Carrito" titleStyle={stylesGlobal.headerTitle}/>
+        <Appbar.Action icon="arrow-left" style={{ opacity: 0 }} onPress={() => { }} disabled />
+        <Appbar.Content title="Carrito" titleStyle={stylesGlobal.headerTitle} />
         {carrito.length > 0 ? (
-          <Appbar.Action icon="delete" color="white" onPress={limpiarCarrito}/>
+          <Appbar.Action icon="delete" color="white" onPress={limpiarCarrito} />
         ) : (
-          <Appbar.Action icon="delete" style={{ opacity: 0 }} onPress={() => { }} disabled/>
+          <Appbar.Action icon="delete" style={{ opacity: 0 }} onPress={() => { }} disabled />
         )}
       </Appbar.Header>
 
       {carritoOrdenado.length === 0 ? (
-  // 🛒 CARRITO VACÍO
-  <View style={styles.emptyContainer}>
-    <FontAwesome
-      name="shopping-cart"
-      size={70}
-      color="#bbb"
-    />
-    <Text style={styles.emptyText}>
-      Tu carrito está vacío
-    </Text>
-    <Text style={styles.emptySubText}>
-      Agrega productos para continuar
-    </Text>
-  </View>
-) : (
-      // 🧾 CARRITO CON ITEMS
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {carritoOrdenado.map(item => (
-          <View key={item.id} style={styles.cartCard}>
-            <Image source={{ uri: item.img }} style={styles.productImage} />
+        <View style={styles.emptyContainer}>
+          <FontAwesome
+            name="shopping-cart"
+            size={70}
+            color="#bbb"
+          />
+          <Text style={styles.emptyText}>
+            Tu carrito está vacío
+          </Text>
+          <Text style={styles.emptySubText}>
+            Agrega productos para continuar
+          </Text>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {carritoOrdenado.map(item => (
+            <View key={item.id} style={styles.cartCard}>
+              <Image source={{ uri: item.img }} style={styles.productImage} />
 
-            <View style={styles.infoContainer}>
-              <Text style={styles.productName}>{item.nombre}</Text>
-              <Text style={styles.productPrice}>${item.precio}</Text>
+              <View style={styles.infoContainer}>
+                <Text style={styles.productName}>{item.nombre}</Text>
+                <Text style={styles.productPrice}>${item.precio}</Text>
 
-              {/* STEPPER */}
-              <View style={styles.stepper}>
-                <TouchableOpacity
-                  style={styles.stepperBtn}
-                  onPress={() => cambiarCantidad(item.id, -1)}
-                >
-                  <Text style={styles.stepperText}>−</Text>
-                </TouchableOpacity>
+                <View style={styles.stepper}>
+                  <TouchableOpacity
+                    style={styles.stepperBtn}
+                    onPress={() => cambiarCantidad(item.id, -1)}
+                  >
+                    <Text style={styles.stepperText}>−</Text>
+                  </TouchableOpacity>
 
-                <Text style={styles.qtyText}>{item.cantidad}</Text>
+                  <Text style={styles.qtyText}>{item.cantidad}</Text>
 
-                <TouchableOpacity
-                  style={styles.stepperBtn}
-                  onPress={() => cambiarCantidad(item.id, 1)}
-                >
-                  <Text style={styles.stepperText}>+</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.stepperBtn}
+                    onPress={() => cambiarCantidad(item.id, 1)}
+                  >
+                    <Text style={styles.stepperText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.rightAction}>
+                <IconButton
+                  icon="close"
+                  size={20}
+                  style={styles.closeBtn}
+                  onPress={() => eliminarItem(item.id)}
+                />
+                <Text style={styles.itemTotal}>
+                  ${(item.precio * item.cantidad).toFixed(2)}
+                </Text>
               </View>
             </View>
-
-            {/* DERECHA */}
-            <View style={styles.rightAction}>
-              <IconButton
-                icon="close"
-                size={20}
-                style={styles.closeBtn}
-                onPress={() => eliminarItem(item.id)}
-              />
-              <Text style={styles.itemTotal}>
-                ${(item.precio * item.cantidad).toFixed(2)}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-    )}
+          ))}
+        </ScrollView>
+      )}
 
       <View style={styles.footer}>
         <View style={styles.totalRow}>
@@ -240,22 +254,22 @@ const styles = StyleSheet.create({
   },
   orderBtnText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
   emptyContainer: {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-  padding: 40,
-},
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 40,
+  },
 
-emptyText: {
-  fontSize: 20,
-  fontWeight: "bold",
-  marginTop: 15,
-},
+  emptyText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 15,
+  },
 
-emptySubText: {
-  fontSize: 16,
-  color: "gray",
-  marginTop: 5,
-  textAlign: "center",
-},
+  emptySubText: {
+    fontSize: 16,
+    color: "gray",
+    marginTop: 5,
+    textAlign: "center",
+  },
 });
