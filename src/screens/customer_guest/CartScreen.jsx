@@ -12,11 +12,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import apiClient from "../../service/apiClient";
 import { stylesGlobal } from "./styles";
+import { useAppContext } from "../../context/AppContext";
 
 export default function CartScreen() {
 
   const navigation = useNavigation();
   const [carrito, setCarrito] = useState([]);
+  const { isDarkTheme } = useAppContext();
 
   const cargarCarrito = async () => {
     try {
@@ -68,24 +70,15 @@ export default function CartScreen() {
   );
 
   const TASA_IVA = 0.12;
-
   const impuesto = subTotal * TASA_IVA;
-
   const total = subTotal + impuesto;
 
   const [loading, setLoading] = useState(false);
 
   const ordenarPedido = async () => {
     if (carrito.length === 0) return;
-
     setLoading(true);
-    const payload = {
-      items: carritoOrdenado,
-      subTotal,
-      impuesto,
-      total
-    };
-
+    const payload = { items: carritoOrdenado, subTotal, impuesto, total };
     try {
       await apiClient.post("/api/orders", payload);
       alert("¡Pedido realizado con éxito!");
@@ -100,7 +93,7 @@ export default function CartScreen() {
   };
 
   return (
-    <View style={[stylesGlobal.container, { flex: 1 }]}>
+    <View style={[stylesGlobal.container, { backgroundColor: isDarkTheme ? "#121212" : "#fff4ea" }]}>
       <Appbar.Header style={stylesGlobal.appbar}>
         <Appbar.Action icon="arrow-left" style={{ opacity: 0 }} onPress={() => { }} disabled />
         <Appbar.Content title="Carrito" titleStyle={stylesGlobal.headerTitle} />
@@ -113,55 +106,34 @@ export default function CartScreen() {
 
       {carritoOrdenado.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <FontAwesome
-            name="shopping-cart"
-            size={70}
-            color="#bbb"
-          />
-          <Text style={styles.emptyText}>
-            Tu carrito está vacío
-          </Text>
-          <Text style={styles.emptySubText}>
-            Agrega productos para continuar
-          </Text>
+          <FontAwesome name="shopping-cart" size={70} color="#bbb" />
+          <Text style={[styles.emptyText, { color: isDarkTheme ? "#fff" : "#000" }]}>Tu carrito está vacío</Text>
+          <Text style={styles.emptySubText}>Agrega productos para continuar</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {carritoOrdenado.map(item => (
-            <View key={item.id} style={styles.cartCard}>
+            <View key={item.id} style={[styles.cartCard, { backgroundColor: isDarkTheme ? "#1e1e1e" : "white" }]}>
               <Image source={{ uri: item.img }} style={styles.productImage} />
 
               <View style={styles.infoContainer}>
-                <Text style={styles.productName}>{item.nombre}</Text>
+                <Text style={[styles.productName, { color: isDarkTheme ? "#fff" : "#000" }]}>{item.nombre}</Text>
                 <Text style={styles.productPrice}>${item.precio}</Text>
 
                 <View style={styles.stepper}>
-                  <TouchableOpacity
-                    style={styles.stepperBtn}
-                    onPress={() => cambiarCantidad(item.id, -1)}
-                  >
+                  <TouchableOpacity style={styles.stepperBtn} onPress={() => cambiarCantidad(item.id, -1)}>
                     <Text style={styles.stepperText}>−</Text>
                   </TouchableOpacity>
-
-                  <Text style={styles.qtyText}>{item.cantidad}</Text>
-
-                  <TouchableOpacity
-                    style={styles.stepperBtn}
-                    onPress={() => cambiarCantidad(item.id, 1)}
-                  >
+                  <Text style={[styles.qtyText, { color: isDarkTheme ? "#fff" : "#000" }]}>{item.cantidad}</Text>
+                  <TouchableOpacity style={styles.stepperBtn} onPress={() => cambiarCantidad(item.id, 1)}>
                     <Text style={styles.stepperText}>+</Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
               <View style={styles.rightAction}>
-                <IconButton
-                  icon="close"
-                  size={20}
-                  style={styles.closeBtn}
-                  onPress={() => eliminarItem(item.id)}
-                />
-                <Text style={styles.itemTotal}>
+                <IconButton icon="close" size={20} iconColor={isDarkTheme ? "#fff" : "#000"} onPress={() => eliminarItem(item.id)} />
+                <Text style={[styles.itemTotal, { color: isDarkTheme ? "#fff" : "#000" }]}>
                   ${(item.precio * item.cantidad).toFixed(2)}
                 </Text>
               </View>
@@ -170,22 +142,22 @@ export default function CartScreen() {
         </ScrollView>
       )}
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { backgroundColor: isDarkTheme ? "#1e1e1e" : "white" }]}>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>SubTotal</Text>
-          <Text style={styles.totalValue}>${subTotal.toFixed(2)}</Text>
+          <Text style={[styles.totalLabel, { color: isDarkTheme ? "#fff" : "#000" }]}>SubTotal</Text>
+          <Text style={[styles.totalValue, { color: isDarkTheme ? "#fff" : "#000" }]}>${subTotal.toFixed(2)}</Text>
         </View>
 
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Impuesto (12%)</Text>
-          <Text style={styles.totalValue}>${impuesto.toFixed(2)}</Text>
+          <Text style={[styles.totalLabel, { color: isDarkTheme ? "#fff" : "#000" }]}>Impuesto (12%)</Text>
+          <Text style={[styles.totalValue, { color: isDarkTheme ? "#fff" : "#000" }]}>${impuesto.toFixed(2)}</Text>
         </View>
 
-        <Divider style={styles.divider} />
+        <Divider style={[styles.divider, { backgroundColor: isDarkTheme ? "#444" : "#1a0a05" }]} />
 
         <View style={styles.totalRow}>
-          <Text style={styles.finalTotalLabel}>Total</Text>
-          <Text style={styles.finalTotalValue}>${total.toFixed(2)}</Text>
+          <Text style={[styles.finalTotalLabel, { color: isDarkTheme ? "#fff" : "#000" }]}>Total</Text>
+          <Text style={[styles.finalTotalValue, { color: isDarkTheme ? "#fff" : "#000" }]}>${total.toFixed(2)}</Text>
         </View>
 
         <TouchableOpacity style={styles.orderBtn} onPress={ordenarPedido}>
@@ -196,12 +168,9 @@ export default function CartScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
   scrollContent: { padding: 20 },
-
   cartCard: {
-    backgroundColor: 'white',
     borderRadius: 25,
     flexDirection: 'row',
     padding: 15,
@@ -224,13 +193,9 @@ const styles = StyleSheet.create({
   },
   stepperText: { color: 'white', fontSize: 20, fontWeight: 'bold' },
   qtyText: { marginHorizontal: 15, fontSize: 18, fontWeight: 'bold' },
-
   rightAction: { alignItems: 'flex-end', justifyContent: 'space-between', height: 80 },
-  closeBtn: { margin: 0, marginTop: -10, marginRight: -10 },
   itemTotal: { fontSize: 20, fontWeight: 'bold' },
-
   footer: {
-    backgroundColor: 'white',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     padding: 30,
@@ -240,10 +205,9 @@ const styles = StyleSheet.create({
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   totalLabel: { fontSize: 18, fontWeight: 'bold' },
   totalValue: { fontSize: 18, fontWeight: 'bold' },
-  divider: { height: 2, backgroundColor: '#1a0a05', marginVertical: 15 },
+  divider: { height: 2, marginVertical: 15 },
   finalTotalLabel: { fontSize: 20, fontWeight: 'bold' },
   finalTotalValue: { fontSize: 20, fontWeight: 'bold' },
-
   orderBtn: {
     backgroundColor: '#d32f2f',
     borderRadius: 25,
@@ -253,23 +217,7 @@ const styles = StyleSheet.create({
     marginTop: 25,
   },
   orderBtnText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 40,
-  },
-
-  emptyText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 15,
-  },
-
-  emptySubText: {
-    fontSize: 16,
-    color: "gray",
-    marginTop: 5,
-    textAlign: "center",
-  },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: 40 },
+  emptyText: { fontSize: 20, fontWeight: "bold", marginTop: 15 },
+  emptySubText: { fontSize: 16, color: "gray", marginTop: 5, textAlign: "center" },
 });

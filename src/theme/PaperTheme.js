@@ -21,7 +21,7 @@ export const PaperLightTheme = {
     onError: "#ffffff",
     errorContainer: "#ffebee",
     onErrorContainer: "#f44336",
-    background: "#fafafa",    // Fondo más suave
+    background: "#fff",    // Fondo más suave
     onBackground: "#212121",
     surface: "#ffffff",
     onSurface: "#212121",
@@ -50,10 +50,10 @@ export const PaperDarkTheme = {
   ...MD3DarkTheme,
   colors: {
     ...MD3DarkTheme.colors,
-    primary: "#ff8a80",       // Rojo claro para oscuro
-    onPrimary: "#000000",
+    primary: "#d32f2f",       // Rojo claro para oscuro
+    onPrimary: "#ffffff",
     primaryContainer: "#3e2723",
-    onPrimaryContainer: "#ff8a80",
+    onPrimaryContainer: "#d32f2f",
     secondary: "#ffb74d",     // Naranja claro
     onSecondary: "#000000",
     secondaryContainer: "#3e2723",
@@ -62,10 +62,10 @@ export const PaperDarkTheme = {
     onTertiary: "#000000",
     tertiaryContainer: "#1b5e20",
     onTertiaryContainer: "#81c784",
-    error: "#ef5350",
+    error: "#d32f2f",
     onError: "#000000",
     errorContainer: "#3e2723",
-    onErrorContainer: "#ef5350",
+    onErrorContainer: "#d32f2f",
     background: "#121212",    // Fondo oscuro
     onBackground: "#ffffff",
     surface: "#1e1e1e",

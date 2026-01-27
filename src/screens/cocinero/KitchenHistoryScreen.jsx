@@ -2,12 +2,14 @@ import React, { useState, useCallback } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
 import { Appbar, Card, Text, SegmentedButtons, Chip } from "react-native-paper";
 import { useFocusEffect } from "@react-navigation/native";
-import apiClient from "../../../service/apiClient";
+import apiClient from "../../service/apiClient";
+import { useAppContext } from "../../context/AppContext";
 
 export default function KitchenHistoryScreen() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState("today");
+    const { isDarkTheme } = useAppContext();
 
     const fetchHistory = async () => {
         try {
@@ -32,44 +34,49 @@ export default function KitchenHistoryScreen() {
     );
 
     const renderItem = ({ item }) => (
-        <Card style={styles.card}>
+        <Card style={[styles.card, { backgroundColor: isDarkTheme ? "#1E1E1E" : "white" }]}>
             <Card.Content>
                 <View style={styles.cardHeader}>
-                    <Text variant="titleMedium" style={styles.orderTitle}>Orden #{item.id}</Text>
+                    <Text variant="titleMedium" style={[styles.orderTitle, { color: isDarkTheme ? "#fff" : "#000" }]}>Orden #{item.id}</Text>
                     <Text variant="bodySmall" style={styles.date}>{new Date(item.created_at).toLocaleString()}</Text>
                 </View>
                 <View style={{ marginBottom: 10 }}>
-                    <Text variant="bodySmall" style={{ fontWeight: 'bold', marginBottom: 5 }}>Detalle del pedido:</Text>
+                    <Text variant="bodySmall" style={{ fontWeight: 'bold', marginBottom: 5, color: isDarkTheme ? "#fff" : "#000" }}>Detalle del pedido:</Text>
                     {item.items && item.items.map((orderItem, index) => (
                         <View key={index} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 2 }}>
-                            <Text variant="bodySmall" style={{ flex: 1 }}>{orderItem.quantity}x {orderItem.item ? orderItem.item.title : "Item eliminado"}</Text>
+                            <Text variant="bodySmall" style={{ flex: 1, color: isDarkTheme ? "#ccc" : "#000" }}>{orderItem.quantity}x {orderItem.item ? orderItem.item.title : "Item eliminado"}</Text>
                         </View>
                     ))}
                 </View>
 
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 8 }}>
-                    <Text variant="titleMedium">Total: ${item.total}</Text>
-                    <Chip style={{ backgroundColor: '#e0e0e0' }} textStyle={{ fontSize: 12 }}>{item.status}</Chip>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: isDarkTheme ? "#444" : "#eee", paddingTop: 8 }}>
+                    <Text variant="titleMedium" style={{ color: isDarkTheme ? "#fff" : "#000" }}>Total: ${item.total}</Text>
+                    <Chip style={{ backgroundColor: isDarkTheme ? "#333" : "#e0e0e0" }} textStyle={{ fontSize: 12, color: isDarkTheme ? "#fff" : "#000" }}>{item.status}</Chip>
                 </View>
             </Card.Content>
         </Card>
     );
 
     return (
-        <View style={styles.container}>
+        <View style={{ flex: 1, backgroundColor: isDarkTheme ? "#121212" : "#fff4ea" }}>
             <Appbar.Header style={styles.appbar}>
                 <Appbar.Content title="Historial de Cocina" titleStyle={{ fontWeight: 'bold', color: 'white' }} />
             </Appbar.Header>
 
-            <View style={styles.filters}>
+            <View style={[styles.filters, { backgroundColor: isDarkTheme ? "#1E1E1E" : "white" }]}>
                 <SegmentedButtons
                     value={filter}
                     onValueChange={setFilter}
                     buttons={[
-                        { value: 'today', label: 'Hoy' },
-                        { value: 'all', label: 'Todos' },
+                        { value: 'today', label: 'Hoy', labelStyle: { color: isDarkTheme ? "#fff" : "#000" } },
+                        { value: 'all', label: 'Todos', labelStyle: { color: isDarkTheme ? "#fff" : "#000" } },
                     ]}
-                    theme={{ colors: { secondaryContainer: '#ffccbc' } }}
+                    theme={{ 
+                        colors: { 
+                            secondaryContainer: isDarkTheme ? "#d32f2f" : "#ffccbc",
+                            outline: isDarkTheme ? "#555" : "#ccc"
+                        } 
+                    }}
                 />
             </View>
 
@@ -83,7 +90,7 @@ export default function KitchenHistoryScreen() {
                 ListEmptyComponent={
                     !loading && (
                         <View style={styles.empty}>
-                            <Text variant="titleMedium">No hay pedidos en el historial</Text>
+                            <Text variant="titleMedium" style={{ color: isDarkTheme ? "#aaa" : "#000" }}>No hay pedidos en el historial</Text>
                         </View>
                     )
                 }
@@ -93,11 +100,10 @@ export default function KitchenHistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#f5f5f5" },
     appbar: { backgroundColor: "#d32f2f" },
-    filters: { padding: 16, backgroundColor: "white", elevation: 2 },
+    filters: { padding: 16, elevation: 2 },
     list: { padding: 16 },
-    card: { marginBottom: 12, backgroundColor: "white" },
+    card: { marginBottom: 12 },
     cardHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
     orderTitle: { fontWeight: "bold" },
     date: { color: "gray" },

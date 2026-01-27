@@ -12,7 +12,7 @@ const MAX_EMAIL_LENGTH = 30;
 const PASSWORD_LENGTH = 20;
 
 export default function LoginScreen({ navigation }) {
-  const { login } = useAppContext();
+  const { login, isDarkTheme } = useAppContext(); // Extraemos isDarkTheme
 
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -54,25 +54,39 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
+  // Color dinámico para iconos y bordes
+  const defaultColor = isDarkTheme ? "#fff" : "black";
+
   return (
     <ImageBackground
       source={require('../../../../assets/background_auth.jpg')}
       style={{ flex: 1, justifyContent: 'center' }}
       resizeMode="cover"
     >
-      <View style={[styles.container, { backgroundColor: 'rgba(255, 255, 255, 0.9)', margin: 20, borderRadius: 20, padding: 20, flex: 0 }]}>
-        <Text style={styles.title}>Login</Text>
+      <View style={[
+        styles.container, 
+        { 
+          backgroundColor: isDarkTheme ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.9)', 
+          margin: 20, 
+          borderRadius: 20, 
+          padding: 20, 
+          flex: 0 
+        }
+      ]}>
+        <Text style={[styles.title, { color: isDarkTheme ? "#fff" : "#000" }]}>Login</Text>
 
         {/* EMAIL */}
         <TextInput
           label="Correo"
           mode="outlined"
           activeOutlineColor={
-            emailError ? "red" : email ? "green" : "black"
+            emailError ? "red" : email ? "green" : (isDarkTheme ? "#d32f2f" : "black")
           }
+          outlineColor={isDarkTheme ? "#555" : "#ccc"}
+          textColor={isDarkTheme ? "#fff" : "#000"}
           value={email}
           onChangeText={localHandleEmailChange}
-          style={styles.input}
+          style={[styles.input, { backgroundColor: isDarkTheme ? "#2c2c2c" : "#fff" }]}
           keyboardType="email-address"
           autoCapitalize="none"
           maxLength={MAX_EMAIL_LENGTH}
@@ -83,7 +97,7 @@ export default function LoginScreen({ navigation }) {
                 <FontAwesome6
                   name="envelope"
                   size={20}
-                  color={emailError ? "red" : email ? "green" : "black"}
+                  color={emailError ? "red" : email ? "green" : defaultColor}
                   solid
                 />
               )}
@@ -120,8 +134,10 @@ export default function LoginScreen({ navigation }) {
           label="Contraseña"
           mode="outlined"
           activeOutlineColor={
-            passwordError ? "red" : password ? "green" : "black"
+            passwordError ? "red" : password ? "green" : (isDarkTheme ? "#d32f2f" : "black")
           }
+          outlineColor={isDarkTheme ? "#555" : "#ccc"}
+          textColor={isDarkTheme ? "#fff" : "#000"}
           value={password}
           onChangeText={(text) => {
             setPassword(text);
@@ -129,7 +145,7 @@ export default function LoginScreen({ navigation }) {
             setPasswordError(v.message);
           }}
           secureTextEntry={!showPassword}
-          style={styles.input}
+          style={[styles.input, { backgroundColor: isDarkTheme ? "#2c2c2c" : "#fff" }]}
           maxLength={PASSWORD_LENGTH}
           error={!!passwordError}
           left={
@@ -138,7 +154,7 @@ export default function LoginScreen({ navigation }) {
                 <FontAwesome6
                   name="lock"
                   size={20}
-                  color={passwordError ? "red" : password ? "green" : "black"}
+                  color={passwordError ? "red" : password ? "green" : defaultColor}
                   solid
                 />
               )}
@@ -183,9 +199,9 @@ export default function LoginScreen({ navigation }) {
         </Button>
 
         {/* LINKS */}
-        <Text style={styles.link}>
+        <Text style={[styles.link, { color: isDarkTheme ? "#bbb" : "#000" }]}>
           ¿No tienes cuenta?{" "}
-          <Text style={{ color: "red" }} onPress={goToRegister}>
+          <Text style={{ color: "#d32f2f", fontWeight: 'bold' }} onPress={goToRegister}>
             Registrarse
           </Text>
         </Text>

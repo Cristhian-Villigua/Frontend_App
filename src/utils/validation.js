@@ -25,20 +25,40 @@ export const validateLastname = (text) => {
 };
 
 export const validateBirthday = (text) => {
-    if (!text.trim()) return { valid: false, message: "La fecha de nacimiento es requerida" };
+  if (!text.trim()) {
+    return { valid: false, message: "La fecha de nacimiento es requerida" };
+  }
 
-    const [dia, mes, anio] = text.split("/").map(Number);
-    const fecha = new Date(anio, mes - 1, dia);
-    const hoy = new Date();
+  const [day, month, year] = text.split("/").map(Number);
+  const birthDate = new Date(year, month - 1, day);
+  const today = new Date();
 
-    if (fecha > hoy) return { valid: false, message: "La fecha no puede ser futura" };
+  if (isNaN(birthDate.getTime())) {
+    return { valid: false, message: "Fecha inválida" };
+  }
 
-    const edad = hoy.getFullYear() - anio;
-    if (edad < 18) return { valid: false, message: "Debe ser mayor de 18 años" };
-    if (edad > 50) return { valid: false, message: "Máximo 50 años atrás" };
+  if (birthDate > today) {
+    return { valid: false, message: "La fecha no puede ser futura" };
+  }
 
-    return { valid: true, message: "" };
+  let age = today.getFullYear() - year;
+  const hasNotHadBirthday =
+    today.getMonth() < month - 1 ||
+    (today.getMonth() === month - 1 && today.getDate() < day);
+
+  if (hasNotHadBirthday) age--;
+
+  if (age < 18) {
+    return { valid: false, message: "Debe ser mayor de 18 años" };
+  }
+
+  if (age > 50) {
+    return { valid: false, message: "La edad máxima es 50 años" };
+  }
+
+  return { valid: true, message: "" };
 };
+
 
 export const validatePhone = (text) => {
     if (!text.trim()) return { valid: false, message: "El teléfono es requerido" };

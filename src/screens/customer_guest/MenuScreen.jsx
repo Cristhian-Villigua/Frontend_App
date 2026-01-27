@@ -4,6 +4,7 @@ import { View, StyleSheet, ScrollView, Image, FlatList, ImageBackground, Touchab
 import { useNavigation } from "@react-navigation/native";
 import apiClient from "../../service/apiClient";
 import { stylesGlobal } from "./styles";
+import { useAppContext } from "../../context/AppContext";
 
 export default function MenuScreen() {
   const navigation = useNavigation();
@@ -11,6 +12,7 @@ export default function MenuScreen() {
   const [popularItems, setPopularItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const { isDarkTheme } = useAppContext();
 
   const fetchMenu = async () => {
     try {
@@ -43,7 +45,7 @@ export default function MenuScreen() {
   }, []);
 
   const renderHeader = () => (
-    <View>
+    <View >
       <View style={styles.bannerContainer}>
         <ImageBackground
           source={{ uri: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200" }}
@@ -57,12 +59,13 @@ export default function MenuScreen() {
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text variant="headlineSmall" style={styles.sectionTitle}>Categorías</Text>
+        <Text variant="headlineSmall" style={[styles.sectionTitle, { color: isDarkTheme ? "#fff" : "#1a0a05" }]}>Categorías</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{marginTop: 10}}>
           {categories.map(cat => (
             <Chip
               key={cat.id}
-              style={styles.chip}
+              style={[styles.chip, { backgroundColor: isDarkTheme ? "#1e1e1e" : "white" }]}
+              textStyle={{ color: isDarkTheme ? "#fff" : "#000" }}
               onPress={() => navigation.navigate("Categoria", { categoriaId: cat.id, categoriaNombre: cat.title })}
             >
               {cat.title}
@@ -72,13 +75,16 @@ export default function MenuScreen() {
       </View>
 
       <View style={styles.listHeader}>
-        <Text variant="titleLarge" style={styles.sectionTitle}>Platos Populares</Text>
+        <Text variant="titleLarge" style={[styles.sectionTitle, { color: isDarkTheme ? "#fff" : "#1a0a05" }]}>Platos Populares</Text>
       </View>
     </View>
   );
 
   return (
-    <View style={stylesGlobal.container}>
+    <View style={[
+                stylesGlobal.container,
+                { backgroundColor: isDarkTheme ? "#121212" : "#fff4ea" },
+            ]}>
       <Appbar.Header style={stylesGlobal.appbar}>
         <Appbar.Content title="Menú Principal" titleStyle={stylesGlobal.headerTitle} />
       </Appbar.Header>
@@ -93,17 +99,23 @@ export default function MenuScreen() {
         onRefresh={fetchMenu}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.card}
+            style={[styles.card, { backgroundColor: isDarkTheme ? "#1e1e1e" : "white" }]}
             onPress={() => navigation.navigate("Detalle", { plato: item })}
           >
             <Image 
               source={{ uri: item.picUrl[0] || 'https://via.placeholder.com/150' }} 
               style={styles.image} 
             />
-            <Text variant="titleMedium" numberOfLines={1} style={styles.nombrePlato}>{item.title}</Text>
+            <Text variant="titleMedium" numberOfLines={1} style={[styles.nombrePlato, { color: isDarkTheme ? "#fff" : "#000" }]}>{item.title}</Text>
             <View style={styles.footerCard}>
-              <Text style={styles.precio}>${item.price}</Text>
-              <IconButton icon="plus" mode="contained" containerColor="#1a0a05" iconColor="white" size={20} />
+              <Text style={[styles.precio, { color: isDarkTheme ? "#fff" : "#000" }]}>${item.price}</Text>
+              <IconButton 
+                icon="plus" 
+                mode="contained" 
+                containerColor={isDarkTheme ? "#d32f2f" : "#1a0a05"} 
+                iconColor="white" 
+                size={20} 
+              />
             </View>
           </TouchableOpacity>
         )}
@@ -145,14 +157,14 @@ const styles = StyleSheet.create({
     fontFamily: 'serif',
   },
   sectionHeader: { paddingHorizontal: 16, marginBottom: 15 },
-  sectionTitle: { fontWeight: "bold", color: "#1a0a05" },
+  sectionTitle: { fontWeight: "bold" },
   chipScroll: { marginTop: 10 },
-  chip: { marginRight: 8, backgroundColor: 'white', borderRadius: 20 },
+  chip: { marginRight: 8, borderRadius: 20 },
   chipText: { fontSize: 15 },
   listHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginBottom: 10 },
   verMas: { color: 'black' },
   grid: { paddingHorizontal: 8, paddingBottom: 20 },
-  card: { flex: 1, backgroundColor: 'white', margin: 8, borderRadius: 24, padding: 12, elevation: 2 },
+  card: { flex: 1, margin: 8, borderRadius: 24, padding: 12, elevation: 2 },
   image: { width: '100%', height: 110, borderRadius: 20, marginBottom: 8 },
   nombrePlato: { fontWeight: 'bold' },
   footerCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

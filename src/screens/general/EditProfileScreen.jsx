@@ -1,67 +1,154 @@
 import React, { useState } from "react";
 import { View, ScrollView, Pressable } from "react-native";
-import { Appbar, TextInput, Button, Snackbar } from "react-native-paper";
+import {
+  Appbar,
+  TextInput,
+  Button,
+  Snackbar,
+  Text,
+  Menu,
+
+  RadioButton
+} from "react-native-paper";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import apiClient from "../../service/apiClient";
 import { useAppContext } from "../../context/AppContext";
 import { stylesGlobal } from "../customer_guest/styles";
 import { stylesProfile } from "./styles";
+import { FontAwesome6 } from "@expo/vector-icons";
 
-/**
- * Convierte Date → YYYY-MM-DD (formato backend)
- */
-const formatDateToISO = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
+import {
+  validateName,
+  validateLastname,
+  validatePhone,
+  validateBirthday,
+} from "../../utils/validation";
+
+import {
+  formatDateToISO,
+  formatDateToDisplay,
+  parseISOToDate,
+} from "../../utils/date";
+
+/* ================== CONSTANTES ================== */
+const MAX_NAME_LENGTH = 20;
+const MAX_PHONE_LENGTH = 10;
+
+// Fecha máxima: hoy - 18 años
+const maxDateLimit = new Date();
+maxDateLimit.setFullYear(maxDateLimit.getFullYear() - 18);
 
 export default function EditProfileScreen({ navigation, route }) {
-  const { isDarkTheme, user, userType } = useAppContext();
+  const { isDarkTheme, userType } = useAppContext();
   const { profile } = route.params;
-
+  const [genderMenuVisible, setGenderMenuVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
-  // 📅 Fecha de nacimiento
-  const [birthdayDate, setBirthdayDate] = useState(
-    profile?.birthdate ? new Date(profile.birthdate) : new Date()
-  );
-
-  const [birthday, setBirthday] = useState(
-    profile?.birthdate
-      ? new Date(profile.birthdate).toLocaleDateString("es-EC")
-      : ""
-  );
-
-  const [showDatePicker, setShowDatePicker] = useState(false);
-
+  /* ================== ESTADO FORM ================== */
   const [form, setForm] = useState({
     nombres: profile?.nombres || "",
     apellidos: profile?.apellidos || "",
     email: profile?.email || "",
     celular: profile?.celular || "",
     genero: profile?.genero || "",
-    photo: null,
   });
+
+  /* ================== ERRORES ================== */
+  const [errors, setErrors] = useState({
+    nombres: "",
+    apellidos: "",
+    celular: "",
+    birthdate: "",
+  });
+
+  /* ================== FECHA ================== */
+  const initialDate = profile?.birthdate
+    ? parseISOToDate(profile.birthdate)
+    : maxDateLimit;
+
+  const [birthdayDate, setBirthdayDate] = useState(initialDate);
+  const [birthday, setBirthday] = useState(
+    initialDate ? formatDateToDisplay(initialDate) : ""
+  );
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const onChangeBirthday = (event, selectedDate) => {
     setShowDatePicker(false);
     if (!selectedDate) return;
 
     setBirthdayDate(selectedDate);
-    setBirthday(selectedDate.toLocaleDateString("es-EC"));
+
+    const displayDate = formatDateToDisplay(selectedDate);
+    setBirthday(displayDate);
+
+    const v = validateBirthday(displayDate);
+    setErrors((prev) => ({ ...prev, birthdate: v.message }));
   };
 
-  const handleSave = async () => {
-    try {
-      setLoading(true);
+  /* ================== HANDLERS ================== */
+  const handleNameChange = (text) => {
+    setForm({ ...form, nombres: text });
+    setErrors((prev) => ({
+      ...prev,
+      nombres: validateName(text).message,
+    }));
+  };
 
+  const handleLastNameChange = (text) => {
+    setForm({ ...form, apellidos: text });
+    setErrors((prev) => ({
+      ...prev,
+      apellidos: validateLastname(text).message,
+    }));
+  };
+
+  const handlePhoneChange = (text) => {
+    let numeric = text.replace(/\D/g, "");
+
+    if (numeric.length < 2) numeric = "09";
+    if (!numeric.startsWith("09")) numeric = "09" + numeric.slice(2);
+    if (numeric.length > MAX_PHONE_LENGTH)
+      numeric = numeric.slice(0, MAX_PHONE_LENGTH);
+
+    setForm({ ...form, celular: numeric });
+    setErrors((prev) => ({
+      ...prev,
+      celular: validatePhone(numeric).message,
+    }));
+  };
+
+  /* ================== GUARDAR ================== */
+  const handleSave = async () => {
+    if (
+      !form.nombres ||
+      !form.apellidos ||
+      !form.celular ||
+      !birthday
+    ) {
+      setSnackbarMessage("Todos los campos son obligatorios.");
+      setSnackbar(true);
+      return;
+    }
+
+    if (
+      errors.nombres ||
+      errors.apellidos ||
+      errors.celular ||
+      errors.birthdate
+    ) {
+      setSnackbarMessage("Corrige los errores antes de guardar.");
+      setSnackbar(true);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
       const payload = {
         ...form,
         birthdate: formatDateToISO(birthdayDate),
-        photo: null,
       };
 
       const isCliente = userType === "cliente";
@@ -75,19 +162,19 @@ export default function EditProfileScreen({ navigation, route }) {
         throw new Error("Tipo de usuario desconocido");
       }
 
+      setSnackbarMessage("Perfil actualizado correctamente");
       setSnackbar(true);
       navigation.goBack();
     } catch (error) {
-      console.error(
-        "Error al actualizar perfil:",
-        error.response?.data || error
-      );
+      console.error("Error al actualizar perfil:", error);
+      setSnackbarMessage("Error al actualizar el perfil");
+      setSnackbar(true);
     } finally {
       setLoading(false);
     }
   };
 
-
+  /* ================== UI ================== */
   return (
     <View
       style={[
@@ -95,7 +182,6 @@ export default function EditProfileScreen({ navigation, route }) {
         { backgroundColor: isDarkTheme ? "#121212" : "#fff4ea" },
       ]}
     >
-      {/* Header */}
       <Appbar.Header style={stylesGlobal.appbar}>
         <Appbar.BackAction color="white" onPress={() => navigation.goBack()} />
         <Appbar.Content
@@ -107,92 +193,257 @@ export default function EditProfileScreen({ navigation, route }) {
 
       <ScrollView>
         <View style={{ padding: 16 }}>
+          {/* Nombres */}
           <TextInput
             label="Nombres"
+            mode="outlined"
             value={form.nombres}
-            onChangeText={(text) =>
-              setForm({ ...form, nombres: text })
+            onChangeText={handleNameChange}
+            maxLength={MAX_NAME_LENGTH}
+            error={!!errors.nombres}
+            style={stylesProfile.input}
+            left={
+              <TextInput.Icon
+                icon={() => (
+                  <FontAwesome6
+                    name="user"
+                    size={20}
+                    color={errors.nombres ? "red" : form.nombres ? "green" : "black"}
+                    solid
+                  />
+                )}
+              />
             }
-            style={{ marginBottom: 12 }}
+            right={
+              form.nombres ? (
+                errors.nombres ? (
+                  <TextInput.Icon
+                    icon={() => (
+                      <FontAwesome6 name="circle-xmark" size={20} color="red" solid />
+                    )}
+                  />
+                ) : (
+                  <TextInput.Icon
+                    icon={() => (
+                      <FontAwesome6 name="circle-check" size={20} color="green" solid />
+                    )}
+                  />
+                )
+              ) : null
+            }
           />
+          {errors.nombres && <Text style={{ color: "red", marginTop: -8 }}>{errors.nombres}</Text>}
 
+          {/* Apellidos */}
           <TextInput
             label="Apellidos"
+            mode="outlined"
             value={form.apellidos}
-            onChangeText={(text) =>
-              setForm({ ...form, apellidos: text })
+            onChangeText={handleLastNameChange}
+            maxLength={MAX_NAME_LENGTH}
+            error={!!errors.apellidos}
+            style={stylesProfile.input}
+            left={
+              <TextInput.Icon
+                icon={() => (
+                  <FontAwesome6
+                    name="user"
+                    size={20}
+                    color={errors.apellidos ? "red" : form.apellidos ? "green" : "black"}
+                    solid
+                  />
+                )}
+              />
             }
-            style={{ marginBottom: 12 }}
+            right={
+              form.apellidos ? (
+                errors.apellidos ? (
+                  <TextInput.Icon
+                    icon={() => (
+                      <FontAwesome6 name="circle-xmark" size={20} color="red" solid />
+                    )}
+                  />
+                ) : (
+                  <TextInput.Icon
+                    icon={() => (
+                      <FontAwesome6 name="circle-check" size={20} color="green" solid />
+                    )}
+                  />
+                )
+              ) : null
+            }
           />
+          {errors.apellidos && <Text style={{ color: "red", marginTop: -8 }}>{errors.apellidos}</Text>}
 
+          {/* Correo (solo lectura) */}
           <TextInput
-            label="Correo electrónico"
+            label="Correo"
+            mode="outlined"
             value={form.email}
             disabled
-            style={{ marginBottom: 12 }}
+            style={stylesProfile.input}
+            left={<TextInput.Icon icon={() => <FontAwesome6 name="envelope" size={20} />} />}
           />
 
+          {/* Teléfono */}
           <TextInput
             label="Teléfono"
+            mode="outlined"
+            keyboardType="numeric"
             value={form.celular}
-            keyboardType="phone-pad"
-            onChangeText={(text) =>
-              setForm({ ...form, celular: text })
+            onChangeText={handlePhoneChange}
+            maxLength={MAX_PHONE_LENGTH}
+            error={!!errors.celular}
+            style={stylesProfile.input}
+            left={
+              <TextInput.Icon
+                icon={() => (
+                  <FontAwesome6
+                    name="phone"
+                    size={20}
+                    color={errors.celular ? "red" : form.celular ? "green" : "black"}
+                    solid
+                  />
+                )}
+              />
             }
-            style={{ marginBottom: 12 }}
-          />
-
-          <TextInput
-            label="Género"
-            value={form.genero}
-            onChangeText={(text) =>
-              setForm({ ...form, genero: text })
+            right={
+              form.celular ? (
+                errors.celular ? (
+                  <TextInput.Icon
+                    icon={() => (
+                      <FontAwesome6 name="circle-xmark" size={20} color="red" solid />
+                    )}
+                  />
+                ) : (
+                  <TextInput.Icon
+                    icon={() => (
+                      <FontAwesome6 name="circle-check" size={20} color="green" solid />
+                    )}
+                  />
+                )
+              ) : null
             }
-            style={{ marginBottom: 12 }}
           />
+          {errors.celular && <Text style={{ color: "red", marginTop: -8 }}>{errors.celular}</Text>}
 
-          {/* 📅 Fecha de nacimiento */}
+          {/* Género */}
+          {/* Género */}
+          <Menu
+            visible={genderMenuVisible}
+            onDismiss={() => setGenderMenuVisible(false)}
+            anchor={
+              <Pressable onPress={() => setGenderMenuVisible(true)}>
+                <View pointerEvents="none">
+                  <TextInput
+                    label="Género"
+                    mode="outlined"
+                    value={form.genero}
+                    style={stylesProfile.input}
+                    left={
+                      <TextInput.Icon
+                        icon={() => (
+                          <FontAwesome6
+                            name="venus-mars"
+                            size={18}
+                            color={form.genero ? "green" : "black"}
+                            solid
+                          />
+                        )}
+                      />
+                    }
+                    right={<TextInput.Icon icon="chevron-down" />}
+                  />
+                </View>
+              </Pressable>
+            }
+          >
+            <Menu.Item
+              title="Hombre"
+              leadingIcon="gender-male"
+              onPress={() => {
+                setForm({ ...form, genero: "Hombre" });
+                setGenderMenuVisible(false);
+              }}
+            />
+            <Menu.Item
+              title="Mujer"
+              leadingIcon="gender-female"
+              onPress={() => {
+                setForm({ ...form, genero: "Mujer" });
+                setGenderMenuVisible(false);
+              }}
+            />
+          </Menu>
+
+          {/* Fecha */}
           <Pressable onPress={() => setShowDatePicker(true)}>
             <View pointerEvents="none">
               <TextInput
                 label="Fecha de nacimiento"
+                mode="outlined"
                 value={birthday}
-                style={{ marginBottom: 20 }}
+                error={!!errors.birthdate}
+                style={stylesProfile.input}
+                left={
+                  <TextInput.Icon
+                    icon={() => (
+                      <FontAwesome6
+                        name="calendar-days"
+                        size={20}
+                        color={errors.birthdate ? "red" : birthday ? "green" : "black"}
+                        solid
+                      />
+                    )}
+                  />
+                }
+                right={
+                  birthday ? (
+                    !!errors.birthdate ? (
+                      <TextInput.Icon
+                        icon={() => (
+                          <FontAwesome6 name="circle-xmark" size={20} color="red" solid />
+                        )}
+                      />
+                    ) : (
+                      <TextInput.Icon
+                        icon={() => (
+                          <FontAwesome6 name="circle-check" size={20} color="green" solid />
+                        )}
+                      />
+                    )
+                  ) : null
+                }
               />
             </View>
           </Pressable>
-
-          <TextInput
-            label="Foto"
-            value="Sin foto"
-            disabled
-            style={{ marginBottom: 20 }}
-          />
+          {errors.birthdate && <Text style={{ color: "red", marginTop: -8 }}>{errors.birthdate}</Text>}
 
           <Button
             mode="contained"
             loading={loading}
+            buttonColor="#d32f2f"
             onPress={handleSave}
-            labelStyle={stylesProfile.btnLabel}
             style={stylesProfile.btnProfile}
           >
             Guardar cambios
           </Button>
+
+          <Snackbar visible={snackbar} onDismiss={() => setSnackbar(false)}>
+            {snackbarMessage}
+          </Snackbar>
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={birthdayDate}
+              mode="date"
+              display="spinner"
+              maximumDate={maxDateLimit}
+              onChange={onChangeBirthday}
+            />
+          )}
         </View>
       </ScrollView>
-
-      <Snackbar visible={snackbar} onDismiss={() => setSnackbar(false)}>
-        Perfil actualizado correctamente
-      </Snackbar>
-
-      {showDatePicker && (
-        <DateTimePicker
-          value={birthdayDate}
-          mode="date"
-          display="spinner"
-          onChange={onChangeBirthday}
-        />
-      )}
     </View>
   );
 }

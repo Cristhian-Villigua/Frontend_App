@@ -21,6 +21,9 @@ import CocineroTabs from "./src/navigation/CocineroTabs";
 import AdminTabs from "./src/navigation/AdminTabs";
 import ClienteTabs from "./src/navigation/ClienteTabs";
 import { useEffect } from "react";
+import OptiontsCustomerScreen from "./src/screens/admin/OptiontsCustomerScreen";
+import OptiontsUserScreen from "./src/screens/admin/OptiontsUserScreen";
+import OptiontsProductoScreen from "./src/screens/admin/OptiontsProductoScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -36,20 +39,12 @@ function MainApp() {
 
   useEffect(() => {
     const updateSystemBars = async () => {
-      if (!user) {
-        // 🔄 RESET cuando NO está logueado
-        await NavigationBar.setButtonStyleAsync("dark");
-        return;
-      }
-
-      // 👤 USUARIO LOGUEADO
       await NavigationBar.setButtonStyleAsync(
-        isDarkTheme ? "light" : "light"
+        isDarkTheme ? "light" : "dark"
       );
     };
-
     updateSystemBars();
-  }, [user, isDarkTheme]);
+  }, [isDarkTheme]);
 
 
   if (loadingAuth) return null;
@@ -61,18 +56,20 @@ function MainApp() {
   return (
     <PaperProvider theme={paperTheme}>
       <NavigationContainer theme={paperTheme}>
-        {user && (
+
+        {!user ? (
           <StatusBar
-            style={isDarkTheme ? "light" : "light"}
+            style={isDarkTheme ? "light" : "dark"}
+            translucent
+            backgroundColor="transparent"
+          />
+        ) : (
+          <StatusBar
+            style="light"
             translucent
             backgroundColor="transparent"
           />
         )}
-        <StatusBar
-            style={isDarkTheme ? "dark" : "dark"}
-            translucent
-            backgroundColor="transparent"
-        />
 
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           {/* NO LOGUEADO */}
@@ -100,6 +97,9 @@ function MainApp() {
               <Stack.Screen name="AdminTabs" component={AdminTabs} />
               <Stack.Screen name="Profile" component={ProfileScreen} />
               <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+              <Stack.Screen name="OptiontsCustomer" component={OptiontsCustomerScreen} />
+              <Stack.Screen name="OptiontsUser" component={OptiontsUserScreen} />
+              <Stack.Screen name="OptiontsProducto" component={OptiontsProductoScreen} />
             </>
           )}
 

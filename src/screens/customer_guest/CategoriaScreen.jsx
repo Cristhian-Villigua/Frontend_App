@@ -5,6 +5,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiClient from "../../service/apiClient";
 import { stylesGlobal } from "./styles";
+import { useAppContext } from "../../context/AppContext";
 
 export default function CategoriaScreen() {
   const route = useRoute();
@@ -14,6 +15,7 @@ export default function CategoriaScreen() {
   const [loading, setLoading] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [cartMsgVisible, setCartMsgVisible] = useState(false);
+  const { isDarkTheme } = useAppContext();
 
   const refreshPlatos = async () => {
     try {
@@ -78,7 +80,10 @@ export default function CategoriaScreen() {
 
 
   return (
-    <View style={stylesGlobal.container}>
+    <View style={[
+      stylesGlobal.container,
+      { backgroundColor: isDarkTheme ? "#121212" : "#fff4ea" },
+    ]}>
       {/* Header */}
       <Appbar.Header style={stylesGlobal.appbar}>
         <Appbar.BackAction color="white" onPress={() => navigation.goBack()} />
@@ -104,14 +109,15 @@ export default function CategoriaScreen() {
                 { flexDirection: isEven ? "row" : "row-reverse" }
               ]}
             >
-              {/* Info */}
+              {/* Info Card con cambio de color dinámico */}
               <View
                 style={[
                   stylesGlobal.infoCard,
-                  isEven ? stylesGlobal.infoLeft : stylesGlobal.infoRight
+                  isEven ? stylesGlobal.infoLeft : stylesGlobal.infoRight,
+                  { backgroundColor: isDarkTheme ? "#1e1e1e" : "white" }
                 ]}
               >
-                <Text style={stylesGlobal.nombre}>{item.title}</Text>
+                <Text style={[stylesGlobal.nombre, { color: isDarkTheme ? "#fff" : "#000" }]}>{item.title}</Text>
 
                 <View style={stylesGlobal.starsRow}>
                   {[1, 2, 3, 4, 5].map((s) => (
@@ -120,16 +126,13 @@ export default function CategoriaScreen() {
                 </View>
 
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 5 }}>
-                  <Text style={stylesGlobal.precio}>${item.price}</Text>
+                  <Text style={[stylesGlobal.precio, { color: isDarkTheme ? "#fff" : "#000" }]}>${item.price}</Text>
                   <IconButton
                     icon="plus"
                     size={20}
-                    style={{ backgroundColor: '#f1b46c', margin: 0 }}
+                    style={{ backgroundColor: isDarkTheme ? "#d32f2f" : "#f1b46c", margin: 0 }}
                     iconColor="white"
-                    onPress={(e) => {
-                      e.preventDefault && e.preventDefault(); // Safety check though TouchableOpacity captures
-                      quickAddToCart(item);
-                    }}
+                    onPress={() => quickAddToCart(item)}
                   />
                 </View>
               </View>

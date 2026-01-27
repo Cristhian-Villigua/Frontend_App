@@ -5,6 +5,10 @@ import apiClient from "../../service/apiClient";
 import { useAppContext } from "../../context/AppContext";
 import { stylesGlobal } from "../customer_guest/styles";
 import { stylesProfile } from "../general/styles";
+import {
+  parseISOToDate,
+  formatDateToDisplay,
+} from "../../utils/date";
 
 export default function ProfileScreen({ navigation }) {
   const { isDarkTheme, user, userType } = useAppContext();
@@ -33,6 +37,14 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const getFormattedBirthdate = () => {
+    if (!profile?.birthdate) return "—";
+
+    const date = parseISOToDate(profile.birthdate);
+    if (!date) return "—";
+
+    return formatDateToDisplay(date);
+  };
 
   useEffect(() => {
     loadProfile();
@@ -91,7 +103,7 @@ export default function ProfileScreen({ navigation }) {
 
           <List.Item
             title="Fecha de nacimiento"
-            description={profile?.birthdate || "—"}
+            description={getFormattedBirthdate() || "—"}
             left={() => <List.Icon icon="calendar" />}
           />
         </List.Section>

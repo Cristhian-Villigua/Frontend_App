@@ -4,11 +4,13 @@ import { Appbar, Text, Surface, Divider, Chip } from "react-native-paper";
 import { useFocusEffect } from "@react-navigation/native";
 import apiClient from "../../service/apiClient";
 import { stylesGlobal } from "./styles";
+import { useAppContext } from "../../context/AppContext";
 
 export default function HistoryScreen() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
-
+    const { isDarkTheme } = useAppContext();
+    
     const fetchHistory = async () => {
         try {
             setLoading(true);
@@ -34,10 +36,10 @@ export default function HistoryScreen() {
     };
 
     const renderItem = ({ item }) => (
-        <Surface style={styles.card} elevation={2}>
+        <Surface style={[styles.card, { backgroundColor: isDarkTheme ? "#1E1E1E" : "white" }]} elevation={2}>
             <View style={styles.cardHeader}>
                 <View>
-                    <Text variant="titleMedium" style={styles.orderId}>Orden #{item.id}</Text>
+                    <Text variant="titleMedium" style={[styles.orderId, { color: isDarkTheme ? "#fff" : "#333" }]}>Orden #{item.id}</Text>
                     <Text variant="bodySmall" style={styles.date}>{formatDate(item.createdAt || item.date)}</Text>
                 </View>
                 <Chip icon="check-circle-outline" style={styles.chip} textStyle={{ color: "white", fontSize: 12 }}>
@@ -45,10 +47,10 @@ export default function HistoryScreen() {
                 </Chip>
             </View>
 
-            <Divider style={styles.divider} />
+            <Divider style={[styles.divider, { backgroundColor: isDarkTheme ? "#444" : "#eee" }]} />
 
             <View style={styles.cardBody}>
-                <Text variant="bodyMedium">Total items: {item.items ? item.items.length : 0}</Text>
+                <Text variant="bodyMedium" style={{ color: isDarkTheme ? "#ccc" : "#000" }}>Total items: {item.items ? item.items.length : 0}</Text>
                 <Text variant="titleLarge" style={styles.totalPrice}>
                     ${parseFloat(item.total).toFixed(2)}
                 </Text>
@@ -57,14 +59,19 @@ export default function HistoryScreen() {
     );
 
     return (
-        <View style={stylesGlobal.container}>
+        <View style={[
+            stylesGlobal.container,
+            { backgroundColor: isDarkTheme ? "#121212" : "#fff4ea" },
+        ]}>
             <Appbar.Header style={stylesGlobal.appbar}>
                 <Appbar.BackAction color="white" onPress={() => { }} style={{ opacity: 0 }} disabled />
                 <Appbar.Content title="Historial" titleStyle={stylesGlobal.headerTitle} />
                 <Appbar.Action color="white" onPress={() => { }} style={{ opacity: 0 }} disabled />
             </Appbar.Header>
 
-            <View style={styles.content}>
+            <View style={[styles.content,
+            { backgroundColor: isDarkTheme ? "#121212" : "#fff4ea" },
+            ]}>
                 <FlatList
                     data={orders}
                     keyExtractor={(item) => item.id.toString()}
@@ -89,14 +96,12 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
     content: {
         flex: 1,
-        backgroundColor: "#f5f5f5",
     },
     listContent: {
         padding: 16,
         paddingBottom: 30,
     },
     card: {
-        backgroundColor: "white",
         borderRadius: 12,
         marginBottom: 16,
         padding: 16,
@@ -109,19 +114,17 @@ const styles = StyleSheet.create({
     },
     orderId: {
         fontWeight: "bold",
-        color: "#333",
     },
     date: {
         color: "gray",
         marginTop: 4,
     },
     chip: {
-        backgroundColor: "#4caf50", // Green for success/completed
+        backgroundColor: "#4caf50",
         height: 32,
     },
     divider: {
         marginVertical: 12,
-        backgroundColor: "#eee",
     },
     cardBody: {
         flexDirection: "row",

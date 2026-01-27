@@ -5,8 +5,8 @@ import { useAppContext } from "../context/AppContext";
 
 const Tab = createBottomTabNavigator();
 
-import KitchenOrdersScreen from "../screens/mobile/cocinero/KitchenOrdersScreen";
-import KitchenHistoryScreen from "../screens/mobile/cocinero/KitchenHistoryScreen";
+import KitchenOrdersScreen from "../screens/cocinero/KitchenOrdersScreen";
+import KitchenHistoryScreen from "../screens/cocinero/KitchenHistoryScreen";
 
 export default function CocineroTabs() {
   const { isDarkTheme } = useAppContext();
@@ -17,15 +17,13 @@ export default function CocineroTabs() {
         headerShown: false,
         tabBarHideOnKeyboard: true,
         tabBarInactiveTintColor: "#fff",
-        tabBarActiveTintColor: isDarkTheme ? "#220C01" : "#fff",
-        tabBarActiveBackgroundColor: "#b71c1c",
+        tabBarActiveTintColor: isDarkTheme ? "#220C01" : "#d32f2f",
         tabBarStyle: {
-          backgroundColor: isDarkTheme ? "#d32f2f" : "#d32f2f",
+          backgroundColor: isDarkTheme ? "#d32f2f" : "#220C01",
         },
         tabBarLabelStyle: {
           fontSize: 12,
           marginBottom: 4,
-          fontWeight: "bold"
         },
       }}
     >

@@ -1,8 +1,8 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import CustomerScreen from "../screens/admin/CustomerScreen";
-import ProductosScreen from "../screens/admin/ProductosScreen";
-import UsuariosScreen from "../screens/admin/UsuariosScreen";
+import ProductoScreen from "../screens/admin/ProductoScreen";
+import UserScreen from "../screens/admin/UserScreen";
 import AccountScreen from "../screens/general/AccountScreen";
 import { useAppContext } from "../context/AppContext";
 
@@ -27,6 +27,17 @@ export default function AdminTabs() {
         },
       }}
     >
+
+      <Tab.Screen
+        name="Staff"
+        component={UserScreen}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <FontAwesome6 name="users" size={20} color={color} />
+          ),
+        }}
+      />
+
       <Tab.Screen
         name="Clientes"
         component={CustomerScreen}
@@ -39,20 +50,10 @@ export default function AdminTabs() {
 
       <Tab.Screen
         name="Productos"
-        component={ProductosScreen}
+        component={ProductoScreen}
         options={{
           tabBarIcon: ({ color }) => (
             <FontAwesome5 name="box-open" size={20} color={color} />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Usuarios"
-        component={UsuariosScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <FontAwesome6 name="users" size={20} color={color} />
           ),
         }}
       />

@@ -12,12 +12,13 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiClient from "../../service/apiClient";
 import { stylesGlobal } from "./styles";
+import { useAppContext } from "../../context/AppContext";
 
 export default function DetalleScreen() {
   const route = useRoute();
   const navigation = useNavigation();
   const { plato: initialPlato } = route.params;
-
+  const { isDarkTheme } = useAppContext();
   const [plato, setPlato] = useState(initialPlato);
   const [cantidad, setCantidad] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
@@ -77,7 +78,10 @@ export default function DetalleScreen() {
   };
 
   return (
-    <View style={stylesGlobal.container}>
+    <View style={[
+                stylesGlobal.container,
+                { backgroundColor: isDarkTheme ? "#121212" : "#fff4ea" },
+            ]}>
       <Appbar.Header style={stylesGlobal.appbar}>
         <Appbar.BackAction color="white" onPress={() => navigation.goBack()} />
         <Appbar.Content title="Detalle" titleStyle={stylesGlobal.headerTitle} />
@@ -94,43 +98,43 @@ export default function DetalleScreen() {
           style={styles.imageMain}
         />
 
-        <View style={styles.infoContainer}>
-          <Text style={styles.nombrePlato}>{plato.title}</Text>
-          <Text style={styles.categoriaTexto}>Plato principal</Text>
+        <View style={[styles.infoContainer, { backgroundColor: isDarkTheme ? "#1E1E1E" : "#fff4ea" }]}>
+          <Text style={[styles.nombrePlato, { color: isDarkTheme ? "#fff" : "#1a0a05" }]}>{plato.title}</Text>
+          <Text style={[styles.categoriaTexto, { color: isDarkTheme ? "#ccc" : "#1a0a05" }]}>Plato principal</Text>
 
           <View style={styles.row}>
             <View style={styles.stepper}>
-              <Text style={styles.qtyLabel}>Cantidad</Text>
-              <View style={styles.stepperControls}>
+              <Text style={[styles.qtyLabel, { color: isDarkTheme ? "#fff" : "#000" }]}>Cantidad</Text>
+              <View style={[styles.stepperControls, { borderColor: isDarkTheme ? "#fff" : "#1a0a05" }]}>
                 <TouchableOpacity
                   onPress={() => setCantidad(prev => Math.max(prev - 1, 1))}
                 >
-                  <Text style={styles.stepperBtn}>−</Text>
+                  <Text style={[styles.stepperBtn, { color: isDarkTheme ? "#fff" : "#1a0a05" }]}>−</Text>
                 </TouchableOpacity>
 
-                <Text style={styles.qtyNumber}>{cantidad}</Text>
+                <Text style={[styles.qtyNumber, { color: isDarkTheme ? "#fff" : "#000" }]}>{cantidad}</Text>
 
                 <TouchableOpacity
                   onPress={() => setCantidad(prev => Math.min(prev + 1, 25))}
                 >
-                  <Text style={styles.stepperBtn}>+</Text>
+                  <Text style={[styles.stepperBtn, { color: isDarkTheme ? "#fff" : "#1a0a05" }]}>+</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
             <View style={styles.ratingBox}>
-              <Text style={styles.ratingText}>4.8</Text>
-              <IconButton icon="star" size={20} iconColor="black" />
+              <Text style={[styles.ratingText, { color: isDarkTheme ? "#fff" : "#000" }]}>4.8</Text>
+              <IconButton icon="star" size={20} iconColor={isDarkTheme ? "#FFD700" : "black"} />
             </View>
           </View>
 
-          <Text style={styles.sectionTitle}>Descripción</Text>
-          <Text style={styles.descripcionText}>
+          <Text style={[styles.sectionTitle, { color: isDarkTheme ? "#fff" : "#1a0a05" }]}>Descripción</Text>
+          <Text style={[styles.descripcionText, { color: isDarkTheme ? "#bbb" : "#4a4a4a" }]}>
             {plato.description || "Sin descripción disponible."}
           </Text>
 
           <TouchableOpacity
-            style={styles.btnCarrito}
+            style={[styles.btnCarrito, { backgroundColor: isDarkTheme ? "#d32f2f" : "#1a0a05" }]}
             onPress={agregarAlCarrito}
           >
             <Text style={styles.btnText}>Añadir al carrito</Text>
@@ -164,7 +168,6 @@ const styles = StyleSheet.create({
   },
 
   infoContainer: {
-    backgroundColor: "#fff4ea",
     marginTop: -40,
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
@@ -175,14 +178,12 @@ const styles = StyleSheet.create({
   nombrePlato: {
     fontSize: 26,
     fontWeight: "bold",
-    textAlign: "center",
-    color: "#1a0a05"
+    textAlign: "center"
   },
 
   categoriaTexto: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#1a0a05",
     marginTop: 15
   },
 
@@ -208,15 +209,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#1a0a05",
     borderRadius: 20,
     paddingHorizontal: 10
   },
 
   stepperBtn: {
     fontSize: 24,
-    paddingHorizontal: 10,
-    color: "#1a0a05"
+    paddingHorizontal: 10
   },
 
   qtyNumber: {
@@ -238,18 +237,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#1a0a05",
     marginBottom: 10
   },
 
   descripcionText: {
     fontSize: 16,
-    color: "#4a4a4a",
     lineHeight: 22
   },
 
   btnCarrito: {
-    backgroundColor: "#1a0a05",
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 20,

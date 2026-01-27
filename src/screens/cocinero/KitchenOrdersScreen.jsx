@@ -2,11 +2,13 @@ import React, { useState, useCallback } from "react";
 import { View, StyleSheet, FlatList, Alert } from "react-native";
 import { Appbar, Card, Text, Button, Chip, IconButton } from "react-native-paper";
 import { useFocusEffect } from "@react-navigation/native";
-import apiClient from "../../../service/apiClient";
+import apiClient from "../../service/apiClient";
+import { useAppContext } from "../../context/AppContext";
 
 export default function KitchenOrdersScreen() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
+    const { isDarkTheme } = useAppContext();
 
     const fetchPendingOrders = async () => {
         try {
@@ -70,36 +72,47 @@ export default function KitchenOrdersScreen() {
     };
 
     const renderItem = ({ item }) => (
-        <Card style={styles.card}>
+        <Card style={[styles.card, { backgroundColor: isDarkTheme ? "#1E1E1E" : "white" }]}>
             <Card.Content>
                 <View style={styles.cardHeader}>
-                    <Text variant="titleLarge" style={styles.orderTitle}>Orden #{item.id}</Text>
-                    <Chip icon="clock-outline">{new Date(item.created_at).toLocaleTimeString()}</Chip>
+                    <Text variant="titleLarge" style={[styles.orderTitle, { color: isDarkTheme ? "#fff" : "#000" }]}>Orden #{item.id}</Text>
+                    <Chip 
+                        icon="clock-outline" 
+                        style={{ backgroundColor: isDarkTheme ? "#333" : "#ebebeb" }}
+                        textStyle={{ color: isDarkTheme ? "#fff" : "#000" }}
+                    >
+                        {new Date(item.created_at).toLocaleTimeString()}
+                    </Chip>
                 </View>
-                <Text variant="bodyMedium" style={{ marginBottom: 10 }}>Cliente: {item.cliente ? `${item.cliente.nombres} ${item.cliente.apellidos}` : "Desconocido"}</Text>
+                <Text variant="bodyMedium" style={{ marginBottom: 10, color: isDarkTheme ? "#ccc" : "#444" }}>
+                    Cliente: {item.cliente ? `${item.cliente.nombres} ${item.cliente.apellidos}` : "Desconocido"}
+                </Text>
 
                 {item.items && item.items.map((orderItem, index) => (
                     <View key={index} style={styles.itemRow}>
-                        <Text style={styles.qty}>{orderItem.quantity}x</Text>
-                        <Text style={styles.itemName}>{orderItem.item ? orderItem.item.title : "Item eliminado"}</Text>
+                        <Text style={[styles.qty, { color: isDarkTheme ? "#fff" : "#000" }]}>{orderItem.quantity}x</Text>
+                        <Text style={[styles.itemName, { color: isDarkTheme ? "#ccc" : "#000" }]}>
+                            {orderItem.item ? orderItem.item.title : "Item eliminado"}
+                        </Text>
                     </View>
                 ))}
 
-                <View style={styles.totalRow}>
-                    <Text variant="titleMedium">Total: ${item.total}</Text>
+                <View style={[styles.totalRow, { borderTopColor: isDarkTheme ? "#444" : "#eee" }]}>
+                    <Text variant="titleMedium" style={{ color: isDarkTheme ? "#fff" : "#000" }}>Total: ${item.total}</Text>
                 </View>
             </Card.Content>
             <Card.Actions style={styles.actions}>
                 <IconButton
                     icon="trash-can-outline"
-                    iconColor="red"
+                    iconColor={isDarkTheme ? "#ff5252" : "red"}
                     size={24}
                     onPress={() => deleteOrder(item.id)}
                 />
                 <Button
                     mode="contained"
                     onPress={() => confirmOrder(item.id)}
-                    buttonColor="#4caf50"
+                    buttonColor={isDarkTheme ? "#388e3c" : "#4caf50"}
+                    textColor="white"
                 >
                     Confirmar
                 </Button>
@@ -108,7 +121,7 @@ export default function KitchenOrdersScreen() {
     );
 
     return (
-        <View style={styles.container}>
+        <View style={{ flex: 1, backgroundColor: isDarkTheme ? "#121212" : "#fff4ea" }}>
             <Appbar.Header style={styles.appbar}>
                 <Appbar.Content title="Pedidos Pendientes" titleStyle={{ fontWeight: 'bold', color: 'white' }} />
             </Appbar.Header>
@@ -123,7 +136,7 @@ export default function KitchenOrdersScreen() {
                 ListEmptyComponent={
                     !loading && (
                         <View style={styles.empty}>
-                            <Text variant="titleMedium">No hay pedidos pendientes</Text>
+                            <Text variant="titleMedium" style={{ color: isDarkTheme ? "#aaa" : "#000" }}>No hay pedidos pendientes</Text>
                         </View>
                     )
                 }
@@ -133,16 +146,15 @@ export default function KitchenOrdersScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#f5f5f5" },
     appbar: { backgroundColor: "#d32f2f" },
     list: { padding: 16 },
-    card: { marginBottom: 16, backgroundColor: "white" },
+    card: { marginBottom: 16 },
     cardHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8, alignItems: "center" },
     orderTitle: { fontWeight: "bold" },
     itemRow: { flexDirection: "row", marginBottom: 4 },
     qty: { fontWeight: "bold", marginRight: 8, minWidth: 20 },
     itemName: { flex: 1 },
-    totalRow: { marginTop: 10, borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 5 },
+    totalRow: { marginTop: 10, borderTopWidth: 1, paddingTop: 5 },
     actions: { justifyContent: "space-between", paddingTop: 10 },
     empty: { alignItems: "center", marginTop: 50 }
 });

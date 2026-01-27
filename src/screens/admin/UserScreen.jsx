@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import {
   DataTable,
-  Text,
   TextInput,
   Button,
   IconButton,
@@ -10,88 +9,90 @@ import {
   Appbar,
   Card,
 } from "react-native-paper";
+import { useFocusEffect } from "@react-navigation/native";
+
 import apiClient from "../../service/apiClient";
 import { stylesAdmin } from "./styles";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback } from "react";
 import { useAppContext } from "../../context/AppContext";
 
 const PAGE_SIZES = [5, 10, 15];
 const screenWidth = Dimensions.get("window").width;
 
-export default function CustomerScreen({ navigation }) {
-
-  const [customers, setCustomers] = useState([]);
+export default function UserScreen({ navigation }) {
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(PAGE_SIZES[0]);
+
   const { isDarkTheme } = useAppContext();
 
   useEffect(() => {
-    fetchCustomers();
+    fetchUsers();
   }, []);
 
   useEffect(() => {
     setPage(0);
   }, [itemsPerPage, search]);
 
-  const fetchCustomers = async () => {
+  const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get("/api/admin/clientes");
-      setCustomers(res.data || []);
+      const res = await apiClient.get("/api/admin/usuarios");
+      setUsers(res.data || []);
     } catch (error) {
-      console.error("Error cargando clientes", error);
+      console.error("Error cargando usuarios", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredCustomers = useMemo(() => {
-    if (!search) return customers;
-    const q = search.toLowerCase();
-    return customers.filter((c) =>
-      `${c.nombres} ${c.apellidos} ${c.email} ${c.celular}`
-        .toLowerCase()
-        .includes(q)
-    );
-  }, [customers, search]);
-
-  const from = page * itemsPerPage;
-  const to = Math.min((page + 1) * itemsPerPage, filteredCustomers.length);
-  const paginatedCustomers = filteredCustomers.slice(from, to);
-
   useFocusEffect(
     useCallback(() => {
-      fetchCustomers();
+      fetchUsers();
     }, [])
   );
 
+  /* ===== FILTRO ===== */
+  const filteredUsers = useMemo(() => {
+    if (!search) return users;
+    const q = search.toLowerCase();
+    return users.filter((u) =>
+      `${u.nombres} ${u.apellidos} ${u.email} ${u.celular} ${u.role}`
+        .toLowerCase()
+        .includes(q)
+    );
+  }, [users, search]);
+
+  const from = page * itemsPerPage;
+  const to = Math.min((page + 1) * itemsPerPage, filteredUsers.length);
+  const paginatedUsers = filteredUsers.slice(from, to);
+
   const COL_WIDTH = {
-    id: 60,
-    nombres: 140,
+    nombres: 150,
     apellidos: 160,
-    email: 220,
+    email: 230,
     celular: 130,
-    genero: 110,
+    role: 140,
     opciones: 110,
   };
 
   return (
-    <View style={[
+    <View
+      style={[
         stylesAdmin.container,
         { backgroundColor: isDarkTheme ? "#121212" : "#fff4ea" },
-      ]}>
+      ]}
+    >
       <Appbar.Header style={stylesAdmin.appbar}>
-        <Appbar.Content title="Clientes" titleStyle={stylesAdmin.headerTitle} />
+        <Appbar.Content title="Staffs" titleStyle={stylesAdmin.headerTitle} />
       </Appbar.Header>
 
-      {/* Barra superior */}
+      {/* ===== BARRA SUPERIOR ===== */}
       <View style={localStyles.topBar}>
         <TextInput
           mode="outlined"
-          placeholder="Buscar cliente"
+          placeholder="Buscar usuario"
           value={search}
           onChangeText={setSearch}
           left={<TextInput.Icon icon="magnify" />}
@@ -101,23 +102,23 @@ export default function CustomerScreen({ navigation }) {
           <Button
             mode="contained"
             icon="plus"
-            onPress={() => navigation.navigate("OptiontsCustomer")}
+            onPress={() => navigation.navigate("OptiontsUser")}
           >
             Nuevo
           </Button>
 
-          <Button mode="contained" icon="refresh" onPress={fetchCustomers}>
+          <Button mode="contained" icon="refresh" onPress={fetchUsers}>
             Recargar
           </Button>
         </View>
       </View>
 
-      {/* Tabla centrada */}
+      {/* ===== TABLA ===== */}
       <View style={localStyles.centerWrapper}>
         <Card style={localStyles.tableCard}>
           <ScrollView horizontal>
             <ScrollView style={{ maxHeight: 380 }}>
-              <DataTable style={{ minWidth: screenWidth + 260 }}>
+              <DataTable style={{ minWidth: screenWidth + 300 }}>
                 <DataTable.Header>
                   <DataTable.Title
                     style={[stylesAdmin.tableCenter, { width: COL_WIDTH.nombres }]}
@@ -148,10 +149,10 @@ export default function CustomerScreen({ navigation }) {
                   </DataTable.Title>
 
                   <DataTable.Title
-                    style={[stylesAdmin.tableCenter, { width: COL_WIDTH.genero }]}
+                    style={[stylesAdmin.tableCenter, { width: COL_WIDTH.role }]}
                     textStyle={stylesAdmin.textCenter}
                   >
-                    Género
+                    Rol
                   </DataTable.Title>
 
                   <DataTable.Title
@@ -167,7 +168,7 @@ export default function CustomerScreen({ navigation }) {
                     <ActivityIndicator />
                   </View>
                 ) : (
-                  paginatedCustomers.map((item) => (
+                  paginatedUsers.map((item) => (
                     <DataTable.Row key={item.id}>
                       <DataTable.Cell
                         style={[stylesAdmin.tableCenter, { width: COL_WIDTH.nombres }]}
@@ -175,38 +176,43 @@ export default function CustomerScreen({ navigation }) {
                       >
                         {item.nombres}
                       </DataTable.Cell>
+
                       <DataTable.Cell
                         style={[stylesAdmin.tableCenter, { width: COL_WIDTH.apellidos }]}
                         textStyle={stylesAdmin.textCenter}
                       >
                         {item.apellidos}
                       </DataTable.Cell>
+
                       <DataTable.Cell
                         style={[stylesAdmin.tableCenter, { width: COL_WIDTH.email }]}
                         textStyle={stylesAdmin.textCenter}
                       >
                         {item.email}
                       </DataTable.Cell>
+
                       <DataTable.Cell
                         style={[stylesAdmin.tableCenter, { width: COL_WIDTH.celular }]}
                         textStyle={stylesAdmin.textCenter}
                       >
                         {item.celular}
                       </DataTable.Cell>
+
                       <DataTable.Cell
-                        style={[stylesAdmin.tableCenter, { width: COL_WIDTH.genero }]}
+                        style={[stylesAdmin.tableCenter, { width: COL_WIDTH.role }]}
                         textStyle={stylesAdmin.textCenter}
                       >
-                        {item.genero}
+                        {item.role}
                       </DataTable.Cell>
+
                       <DataTable.Cell style={{ width: COL_WIDTH.opciones }}>
                         <View style={stylesAdmin.actionsCenter}>
                           <IconButton
                             icon="cog"
                             size={18}
                             onPress={() =>
-                              navigation.navigate("OptiontsCustomer", {
-                                cliente: item,
+                              navigation.navigate("OptiontsUser", {
+                                usuario: item,
                               })
                             }
                           />
@@ -219,10 +225,10 @@ export default function CustomerScreen({ navigation }) {
                 <DataTable.Pagination
                   page={page}
                   numberOfPages={Math.ceil(
-                    filteredCustomers.length / itemsPerPage
+                    filteredUsers.length / itemsPerPage
                   )}
                   onPageChange={setPage}
-                  label={`${from + 1}-${to} de ${filteredCustomers.length}`}
+                  label={`${from + 1}-${to} de ${filteredUsers.length}`}
                   numberOfItemsPerPageList={PAGE_SIZES}
                   numberOfItemsPerPage={itemsPerPage}
                   onItemsPerPageChange={setItemsPerPage}
@@ -257,9 +263,6 @@ const localStyles = StyleSheet.create({
     width: "95%",
     borderRadius: 12,
     paddingVertical: 8,
-  },
-  actions: {
-    flexDirection: "row",
   },
   loading: {
     padding: 16,
